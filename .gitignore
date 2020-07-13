@@ -1,0 +1,21 @@
+*.iml
+.gradle
+/local.properties
+/.idea/
+/.idea/workspace.xml
+/.idea/libraries
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+### Example user template template
+### Example user template
+
+.idea
+*.iml
+dest
+build
+.gradle
+.idea/workspace.xml
+out
+gen
