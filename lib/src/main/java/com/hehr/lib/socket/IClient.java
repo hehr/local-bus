@@ -74,9 +74,9 @@ public interface IClient extends IBus {
      *
      * @param topic topic
      * @return result
-     * @throws RepeatedRpcCallException {@link RepeatedRpcCallException}
+     * @throws RemoteException {@link RemoteException}
      */
-    Bundle call(String topic) throws RepeatedRpcCallException;
+    Bundle call(String topic) throws RemoteException;
 
     /**
      * rpc call
@@ -84,9 +84,9 @@ public interface IClient extends IBus {
      * @param topic String
      * @param param {@link Bundle}
      * @return result
-     * @throws RepeatedRpcCallException {@link RepeatedRpcCallException}
+     * @throws RemoteException {@link RemoteException}
      */
-    Bundle call(String topic, Bundle param) throws RepeatedRpcCallException;
+    Bundle call(String topic, Bundle param) throws RemoteException;
 
     /**
      * client quit actively
@@ -96,15 +96,15 @@ public interface IClient extends IBus {
     /**
      * 重复的rpc请求
      */
-    class RepeatedRpcCallException extends Exception {
+    class RemoteException extends Exception {
 
         private static String error = "重复的rpc请求";
 
-        public RepeatedRpcCallException() {
+        public RemoteException() {
             this(error);
         }
 
-        public RepeatedRpcCallException(String message) {
+        public RemoteException(String message) {
             super(message);
         }
     }

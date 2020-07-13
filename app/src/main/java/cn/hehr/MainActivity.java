@@ -148,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
                 Bundle ret = null;
                 try {
                     ret = notifier.call("remoter.increase", bundle);
-                } catch (IClient.RepeatedRpcCallException e) {
+                } catch (IClient.RemoteException e) {
                     e.printStackTrace();
                 }
                 Log.e(TAG, "ret result :" + (ret == null ? " null result " : ret.getInt("ret")));
@@ -156,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
                 Bundle ret1 = null;
                 try {
                     ret1 = notifier.call("recorder.increase" ,bundle);
-                } catch (IClient.RepeatedRpcCallException e) {
+                } catch (IClient.RemoteException e) {
                     e.printStackTrace();
                 }
                 Log.e(TAG, "ret1 result :" + (ret1 == null ? " null result " : ret1.getInt("ret")));

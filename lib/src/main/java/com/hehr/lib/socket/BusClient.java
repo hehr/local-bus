@@ -179,16 +179,16 @@ public abstract class BusClient implements IClient {
     }
 
     @Override
-    public Bundle call(String topic) throws RepeatedRpcCallException {
+    public Bundle call(String topic) throws RemoteException {
         return call(topic, null);
     }
 
     private volatile boolean isRpcing = false;
 
     @Override
-    public Bundle call(String topic, Bundle param) throws RepeatedRpcCallException {
+    public Bundle call(String topic, Bundle param) throws RemoteException {
         if (isRpcing)
-            throw new RepeatedRpcCallException();
+            throw new RemoteException();
         else {
             synchronized (this) {
                 isRpcing = true;
