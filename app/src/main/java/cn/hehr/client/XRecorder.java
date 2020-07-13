@@ -51,6 +51,11 @@ public class XRecorder extends BusClient implements RecorderListener {
             @Override
             public Bundle invoke(Bundle bundle) {
                 bundle.putInt("ret", 100 + bundle.getInt("int"));
+                try {
+                    Thread.sleep(1000 * 1);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 return bundle;
             }
         });

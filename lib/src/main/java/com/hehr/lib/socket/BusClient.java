@@ -179,26 +179,39 @@ public abstract class BusClient implements IClient {
     }
 
     @Override
-    public Bundle call(String topic) {
+    public Bundle call(String topic) throws RepeatedRpcCallException {
         return call(topic, null);
     }
 
+    private volatile boolean isRpcing = false;
+
     @Override
-    public Bundle call(String topic, Bundle param) {
-        if (mHolder != null && mHolder.isConnect()) {
-            Multipart multipart = new Multipart(Type.rpc, topic);
-            if (param != null) {
-                multipart.setRpcParam(param);
-            }
-            try {
-                return mHolder.call(multipart);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
+    public Bundle call(String topic, Bundle param) throws RepeatedRpcCallException {
+        if (isRpcing)
+            throw new RepeatedRpcCallException();
+        else {
+            synchronized (this) {
+                isRpcing = true;
+                if (mHolder != null && mHolder.isConnect()) {
+                    try {
+                        Multipart multipart = new Multipart(Type.rpc, topic);
+                        if (param != null) {
+                            multipart.setRpcParam(param);
+                        }
+                        Bundle bundle = mHolder.call(multipart);
+                        isRpcing = false;
+                        return bundle;
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    }
+                }
+                isRpcing = false;
+                return null;
             }
         }
-        return null;
+
     }
 
     /**
@@ -210,5 +223,6 @@ public abstract class BusClient implements IClient {
      * 连接退出
      */
     public abstract void onDisconnect();
+
 
 }

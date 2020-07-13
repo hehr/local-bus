@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import com.hehr.lib.socket.BusServer;
+import com.hehr.lib.socket.IClient;
 
 import cn.hehr.binder.BinderPool;
 import cn.hehr.binder.IBinderPoolImpl;
@@ -144,10 +145,20 @@ public class MainActivity extends AppCompatActivity {
                 Bundle bundle = new Bundle();
                 bundle.putInt("int", 111);
 
-                Bundle ret = notifier.call("remoter.increase", bundle);
+                Bundle ret = null;
+                try {
+                    ret = notifier.call("remoter.increase", bundle);
+                } catch (IClient.RepeatedRpcCallException e) {
+                    e.printStackTrace();
+                }
                 Log.e(TAG, "ret result :" + (ret == null ? " null result " : ret.getInt("ret")));
 
-                Bundle ret1 = notifier.call("recorder.increase" ,bundle);
+                Bundle ret1 = null;
+                try {
+                    ret1 = notifier.call("recorder.increase" ,bundle);
+                } catch (IClient.RepeatedRpcCallException e) {
+                    e.printStackTrace();
+                }
                 Log.e(TAG, "ret1 result :" + (ret1 == null ? " null result " : ret1.getInt("ret")));
             }
         }).start();

@@ -7,7 +7,7 @@ import android.os.Bundle;
  *
  * @author hehr
  */
-public interface IClient extends IBus{
+public interface IClient extends IBus {
 
     /**
      * send broadcast
@@ -74,8 +74,9 @@ public interface IClient extends IBus{
      *
      * @param topic topic
      * @return result
+     * @throws RepeatedRpcCallException {@link RepeatedRpcCallException}
      */
-    Bundle call(String topic);
+    Bundle call(String topic) throws RepeatedRpcCallException;
 
     /**
      * rpc call
@@ -83,13 +84,30 @@ public interface IClient extends IBus{
      * @param topic String
      * @param param {@link Bundle}
      * @return result
+     * @throws RepeatedRpcCallException {@link RepeatedRpcCallException}
      */
-    Bundle call(String topic, Bundle param);
+    Bundle call(String topic, Bundle param) throws RepeatedRpcCallException;
 
     /**
      * client quit actively
      */
     void close();
+
+    /**
+     * 重复的rpc请求
+     */
+    class RepeatedRpcCallException extends Exception {
+
+        private static String error = "重复的rpc请求";
+
+        public RepeatedRpcCallException() {
+            this(error);
+        }
+
+        public RepeatedRpcCallException(String message) {
+            super(message);
+        }
+    }
 
 
 }
