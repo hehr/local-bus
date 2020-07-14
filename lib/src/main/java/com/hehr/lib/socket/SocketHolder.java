@@ -65,6 +65,7 @@ public abstract class SocketHolder implements Runnable, ISocketHolder {
                 parcel.writeParcelable(multipart, 0);
                 mWriter.write(parcel.marshall());
                 mWriter.flush();
+                parcel.recycle();
             } catch (IOException e) {
                 e.printStackTrace();
                 writeFailTime++;
@@ -82,7 +83,9 @@ public abstract class SocketHolder implements Runnable, ISocketHolder {
                 Parcel parcel = Parcel.obtain();
                 parcel.unmarshall(bytes, 0, bytes.length);
                 parcel.setDataPosition(0);
-                return parcel.readParcelable(Multipart.class.getClassLoader());
+                Multipart multipart = parcel.readParcelable(Multipart.class.getClassLoader());
+                parcel.recycle();
+                return multipart;
             }
         } catch (IOException e) {
             e.printStackTrace();

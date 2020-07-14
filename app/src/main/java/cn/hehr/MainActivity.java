@@ -32,10 +32,10 @@ public class MainActivity extends AppCompatActivity {
         verifyAudioPermissions(this);
 
         //1 初始化 socket bus
-//        initBus();
+        initBus();
 
         //2.初始化binderPool
-        initPool();
+//        initPool();
 
     }
 
@@ -114,10 +114,10 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "clickStart called ...");
 
         //1. start by binder
-        startByBinder();
+//        startByBinder();
 
         //2. start by socket bus
-//        startBySocketBus();
+        startBySocketBus();
     }
 
     /**
@@ -130,10 +130,10 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "clickStop called ...");
 
         //1. stop by binder
-        stopByBinder();
+//        stopByBinder();
 
         //2.stop by socket bus
-//        stopBySocketBus();
+        stopBySocketBus();
 
     }
 
