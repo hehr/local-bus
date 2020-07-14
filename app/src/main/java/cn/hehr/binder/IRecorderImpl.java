@@ -41,6 +41,7 @@ public class IRecorderImpl extends IRecorder.Stub {
         if (isRunning) {
             mRecorder.stop();
             lstOfCallback.clear();
+            isRunning = false;
         }
     }
 
