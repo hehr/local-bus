@@ -142,7 +142,7 @@ public class BusServer implements IServer {
                     if (multipart != null && !multipart.isEmpty()) {
                         switch (multipart.type) {
                             case Type.join:
-                                String clientName = new String(multipart.args);
+                                String clientName = multipart.args.getString("client.name");
                                 setName(clientName);
                                 join(name, this);
                                 break;
@@ -247,10 +247,10 @@ public class BusServer implements IServer {
             if (rpcLst.containsKey(topic)) {
                 String registeredClient = rpcLst.get(topic);
                 calledLst.put(topic, fromClient);
-                innerLst.get(registeredClient).write(new Multipart(Type.rpced, topic).setRpcParam(multipart.rpcParam));
+                innerLst.get(registeredClient).write(new Multipart(Type.rpced, topic).setArgs(multipart.args));
             } else {
                 Log.e(TAG, "no clent registered rpc topic : " + topic);
-                innerLst.get(fromClient).write(new Multipart(Type.callbacked, topic).setRpcResult(null));
+                innerLst.get(fromClient).write(new Multipart(Type.callbacked, topic).setRet(null));
             }
         }
     }
@@ -265,7 +265,7 @@ public class BusServer implements IServer {
         if (calledLst.containsKey(topic)) {
             String fromClient = calledLst.get(topic);
             calledLst.remove(topic);
-            innerLst.get(fromClient).write(new Multipart(Type.callbacked, topic).setRpcResult(multipart.rpcResult));
+            innerLst.get(fromClient).write(new Multipart(Type.callbacked, topic).setRet(multipart.ret));
         }
     }
 

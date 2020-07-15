@@ -111,11 +111,8 @@ public abstract class SocketHolder implements Runnable, ISocketHolder {
         lock.lock();
 
         try {
-
             int tryTime = 0;
-
             while (!isConnect()) {
-
                 if (++tryTime >= connectLimit)
                     throw new RuntimeException("local socket client connect failed , some unknown reasons happened .");
 
@@ -252,7 +249,7 @@ public abstract class SocketHolder implements Runnable, ISocketHolder {
     @Override
     public void callbacked(Multipart multipart) {
         if (TextUtils.equals(multipart.topic, callback.getTopic())) {
-            notifyCallback(multipart.rpcResult);
+            notifyCallback(multipart.ret);
         } else {
             Log.e(name, "drop may timeout multipart " + multipart.topic);
         }
@@ -267,7 +264,7 @@ public abstract class SocketHolder implements Runnable, ISocketHolder {
                 feedback(topic, rpcThreadPool.submit(new Callable<Bundle>() {
                     @Override
                     public Bundle call() throws Exception {
-                        return rpcLst.get(topic).invoke(multipart.rpcParam);
+                        return rpcLst.get(topic).invoke(multipart.args);
                     }
                 }).get(59, TimeUnit.SECONDS));
             } catch (ExecutionException e) {
@@ -292,7 +289,7 @@ public abstract class SocketHolder implements Runnable, ISocketHolder {
     private void feedback(String topic, Bundle bundle) {
         Multipart multipart = new Multipart(IBus.Type.callback, topic);
         if (bundle != null && !bundle.isEmpty()) {
-            multipart.setRpcResult(bundle);
+            multipart.setRet(bundle);
         }
         write(multipart);
     }

@@ -10,35 +10,12 @@ import android.os.Bundle;
 public interface IClient extends IBus {
 
     /**
-     * send broadcast
-     *
-     * @param topic topic
-     */
-    void publish(String topic);
-
-    /**
-     * send broadcast
-     *
-     * @param topic topic
-     * @param data  data
-     */
-    void publish(String topic, String data);
-
-    /**
-     * send broadcast
-     *
-     * @param topic topic
-     * @param data  data
-     */
-    void publish(String topic, byte[] data);
-
-    /**
      * receive broadcast
      *
      * @param topic topic
      * @param data  message data
      */
-    void onReceived(String topic, byte[] data);
+    void onReceived(String topic, Bundle data);
 
     /**
      * join bus
@@ -70,23 +47,22 @@ public interface IClient extends IBus {
     void registered(String topic, IRpc rpc);
 
     /**
-     * rpc call
+     * send broadcast
      *
      * @param topic topic
-     * @return result
-     * @throws RemoteException {@link RemoteException}
+     * @param data  data {@link Bundle}
      */
-    Bundle call(String topic) throws RemoteException;
+    void publish(String topic, Bundle data);
 
     /**
      * rpc call
      *
      * @param topic String
-     * @param param {@link Bundle}
+     * @param data  {@link Bundle}
      * @return result
      * @throws RemoteException {@link RemoteException}
      */
-    Bundle call(String topic, Bundle param) throws RemoteException;
+    Bundle call(String topic, Bundle data) throws RemoteException;
 
     /**
      * client quit actively

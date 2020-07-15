@@ -33,8 +33,8 @@ public class Remoter extends BusClient {
     }
 
     @Override
-    public void onReceived(String topic, byte[] data) {
-        Log.d(TAG, "received " + topic + " , data : " + data.length);
+    public void onReceived(String topic, Bundle data) {
+        Log.d(TAG, "received " + topic + " , data : " + data.getByteArray("pcm"));
     }
 
     @Override

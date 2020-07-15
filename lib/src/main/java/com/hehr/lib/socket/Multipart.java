@@ -14,7 +14,7 @@ public class Multipart implements Parcelable {
     /**
      * 操作符
      */
-    public int type = -1;
+    public int type;
 
     /**
      * topic,必选
@@ -22,19 +22,14 @@ public class Multipart implements Parcelable {
     public String topic;
 
     /**
-     * 数据包,非必选
+     * param
      */
-    public byte[] args;
+    public Bundle args;
 
     /**
-     * rpc  param
+     * result
      */
-    public Bundle rpcParam;
-
-    /**
-     * rpc result
-     */
-    public Bundle rpcResult;
+    public Bundle ret;
 
 
     public Multipart(int type, String topic) {
@@ -42,32 +37,11 @@ public class Multipart implements Parcelable {
         this.topic = topic;
     }
 
-    public Multipart setArgs(byte[] args) {
-        this.args = args;
-        return this;
-    }
-
-    public Multipart setArgs(String args) {
-        this.args = args.getBytes();
-        return this;
-    }
-
-    public Multipart setRpcParam(Bundle rpcParam) {
-        this.rpcParam = rpcParam;
-        return this;
-    }
-
-    public Multipart setRpcResult(Bundle rpcResult) {
-        this.rpcResult = rpcResult;
-        return this;
-    }
-
     protected Multipart(Parcel in) {
         type = in.readInt();
         topic = in.readString();
-        args = in.createByteArray();
-        rpcParam = in.readBundle();
-        rpcResult = in.readBundle();
+        args = in.readBundle();
+        ret = in.readBundle();
     }
 
     public static final Creator<Multipart> CREATOR = new Creator<Multipart>() {
@@ -82,19 +56,16 @@ public class Multipart implements Parcelable {
         }
     };
 
-    @Override
-    public int describeContents() {
-        return 0;
+    public Multipart setArgs(Bundle args) {
+        this.args = args;
+        return this;
     }
 
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeInt(type);
-        dest.writeString(topic);
-        dest.writeByteArray(args);
-        dest.writeBundle(rpcParam);
-        dest.writeBundle(rpcResult);
+    public Multipart setRet(Bundle ret) {
+        this.ret = ret;
+        return this;
     }
+
 
     public boolean isEmpty() {
         return type == -1 || TextUtils.isEmpty(topic);
@@ -106,5 +77,18 @@ public class Multipart implements Parcelable {
                 "type=" + type +
                 ", topic='" + topic +
                 '}';
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(type);
+        dest.writeString(topic);
+        dest.writeBundle(args);
+        dest.writeBundle(ret);
     }
 }

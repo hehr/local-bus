@@ -31,10 +31,10 @@ public class MainActivity extends AppCompatActivity {
 
         verifyAudioPermissions(this);
 
-        //1 初始化 socket bus
+//        //1 初始化 socket bus
         initBus();
 
-        //2.初始化binderPool
+//        2.初始化binderPool
 //        initPool();
 
     }
@@ -155,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
 
                 Bundle ret1 = null;
                 try {
-                    ret1 = notifier.call("recorder.increase" ,bundle);
+                    ret1 = notifier.call("recorder.increase", bundle);
                 } catch (IClient.RemoteException e) {
                     e.printStackTrace();
                 }
@@ -189,13 +189,13 @@ public class MainActivity extends AppCompatActivity {
 
     private void startBySocketBus() {
         if (notifier != null) {
-            notifier.publish("recorder.start");
+            notifier.publish("recorder.start", null);
         }
     }
 
     private void stopBySocketBus() {
         if (notifier != null) {
-            notifier.publish("recorder.stop");
+            notifier.publish("recorder.stop", null);
         }
     }
 

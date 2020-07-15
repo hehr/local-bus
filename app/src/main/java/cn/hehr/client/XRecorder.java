@@ -16,7 +16,7 @@ public class XRecorder extends BusClient implements RecorderListener {
     private Recorder mRecorder = new Recorder();
 
     @Override
-    public void onReceived(String topic, byte[] data) {
+    public void onReceived(String topic, Bundle data) {
         switch (topic) {
             case "recorder.start":
 
@@ -76,7 +76,9 @@ public class XRecorder extends BusClient implements RecorderListener {
 
     @Override
     public void onDataReceived(byte[] buffer, int size) {
-        publish("recorder.pcm", buffer);
+        Bundle bundle = new Bundle();
+        bundle.putByteArray("pcm", buffer);
+        publish("recorder.pcm", bundle);
     }
 
     @Override

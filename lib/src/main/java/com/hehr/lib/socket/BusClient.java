@@ -102,7 +102,9 @@ public abstract class BusClient implements IClient {
         @Override
         protected void connected() {
             super.connected();
-            write(new Multipart(Type.join, "client.join").setArgs(join()));
+            Bundle joinBundle = new Bundle();
+            joinBundle.putString("client.name", join());
+            write(new Multipart(Type.join, "client.join").setArgs(joinBundle));
             setName(join());
             onConnected();
         }
@@ -121,25 +123,8 @@ public abstract class BusClient implements IClient {
         mExecuteThread.execute(mHolder);
     }
 
-
     @Override
-    public void publish(String topic) {
-        if (mHolder != null && mHolder.isConnect()) {
-            mHolder.write(new Multipart(Type.bct, topic));
-        }
-    }
-
-    @Override
-    public void publish(String topic, String data) {
-        if (mHolder != null && mHolder.isConnect()) {
-            mHolder.write(new Multipart(Type.bct, topic)
-                    .setArgs(data));
-
-        }
-    }
-
-    @Override
-    public void publish(String topic, byte[] data) {
+    public void publish(String topic, Bundle data) {
         if (mHolder != null && mHolder.isConnect()) {
             mHolder.write(new Multipart(Type.bct, topic).setArgs(data));
         }
@@ -178,11 +163,6 @@ public abstract class BusClient implements IClient {
         }
     }
 
-    @Override
-    public Bundle call(String topic) throws RemoteException {
-        return call(topic, null);
-    }
-
     private volatile boolean isRpcing = false;
 
     @Override
@@ -196,7 +176,7 @@ public abstract class BusClient implements IClient {
                     try {
                         Multipart multipart = new Multipart(Type.rpc, topic);
                         if (param != null) {
-                            multipart.setRpcParam(param);
+                            multipart.setArgs(param);
                         }
                         Bundle bundle = mHolder.call(multipart);
                         isRpcing = false;
