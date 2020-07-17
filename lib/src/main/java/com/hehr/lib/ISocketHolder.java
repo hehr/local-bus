@@ -1,4 +1,4 @@
-package com.hehr.lib.socket;
+package com.hehr.lib;
 
 import android.net.LocalSocket;
 import android.os.Bundle;
@@ -11,7 +11,7 @@ import java.util.concurrent.TimeoutException;
  *
  * @author hehr
  */
-interface ISocketHolder {
+public interface ISocketHolder {
 
     /**
      * 设置socket

@@ -1,4 +1,4 @@
-package com.hehr.lib.socket;
+package com.hehr.lib;
 
 import android.os.Bundle;
 import android.os.Parcel;

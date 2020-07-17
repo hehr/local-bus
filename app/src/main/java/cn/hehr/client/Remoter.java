@@ -3,8 +3,9 @@ package cn.hehr.client;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.hehr.lib.socket.BusClient;
-import com.hehr.lib.socket.IRpc;
+import com.hehr.lib.IRpc;
+import com.hehr.lib.BusClient;
+
 
 public class Remoter extends BusClient {
 

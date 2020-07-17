@@ -1,4 +1,4 @@
-package com.hehr.lib.socket;
+package com.hehr.lib;
 
 import android.net.LocalSocket;
 import android.net.LocalSocketAddress;
@@ -6,6 +6,13 @@ import android.os.Bundle;
 import android.os.Parcel;
 import android.text.TextUtils;
 import android.util.Log;
+
+
+import com.hehr.lib.IBus;
+import com.hehr.lib.IRpc;
+import com.hehr.lib.ISocketHolder;
+import com.hehr.lib.Multipart;
+import com.hehr.lib.RpcCallback;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;

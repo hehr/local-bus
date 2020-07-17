@@ -1,9 +1,10 @@
-package com.hehr.lib.socket;
+package com.hehr.lib;
 
 import android.net.LocalServerSocket;
 import android.net.LocalSocket;
 import android.text.TextUtils;
 import android.util.Log;
+
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -34,7 +35,7 @@ public class BusServer implements IServer {
      * 开始监听
      */
     @Override
-    public void listen() {
+    public void bind() {
 
         mPool.execute(new Runnable() {
 
@@ -44,13 +45,10 @@ public class BusServer implements IServer {
 
             @Override
             public void run() {
-
-                mLock.lock();
-
                 int i = 0;
-
+                mLock.lock();
                 try {
-                    while ((mServer = bind(DEFAULT_ADDRESS)) == null) {
+                    while ((mServer = localBind(DEFAULT_ADDRESS)) == null) {
                         if (++i >= tryLimit) {
                             throw new RuntimeException(" bus server bind failed , some unknown reasons happened .");
                         }
@@ -74,7 +72,7 @@ public class BusServer implements IServer {
      * @param address 绑定域名地址
      * @return {@link LocalServerSocket}
      */
-    private LocalServerSocket bind(String address) {
+    private LocalServerSocket localBind(String address) {
         try {
             return new LocalServerSocket(address);
         } catch (Exception e) {
@@ -83,6 +81,8 @@ public class BusServer implements IServer {
             return null;
         }
     }
+
+    
 
     /**
      * 开始监听,运行在独立线程中

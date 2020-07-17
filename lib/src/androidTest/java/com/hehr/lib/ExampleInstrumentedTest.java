@@ -6,16 +6,11 @@ import android.util.Log;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 
-import com.hehr.lib.socket.BusClient;
-import com.hehr.lib.socket.BusServer;
-import com.hehr.lib.socket.Listener;
+import com.hehr.lib.bus.localsocket.BusClient;
+import com.hehr.lib.bus.Listener;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import static org.junit.Assert.assertEquals;
 

@@ -1,6 +1,9 @@
-package com.hehr.lib.socket;
+package com.hehr.lib.bus;
 
 import android.os.Bundle;
+
+import com.hehr.lib.IBus;
+import com.hehr.lib.IRpc;
 
 /**
  * client interface

@@ -1,4 +1,4 @@
-package com.hehr.lib.socket;
+package com.hehr.lib;
 
 /**
  * sock server 定义
@@ -12,7 +12,8 @@ public interface IServer extends IBus {
      *
      * @return address connect address
      */
-    void listen();
+    void bind();
+
 
     /**
      * 断开连接

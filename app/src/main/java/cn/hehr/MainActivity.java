@@ -12,8 +12,8 @@ import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
-import com.hehr.lib.socket.BusServer;
-import com.hehr.lib.socket.IClient;
+import com.hehr.lib.BusServer;
+import com.hehr.lib.bus.IClient;
 
 import cn.hehr.binder.BinderPool;
 import cn.hehr.binder.IBinderPoolImpl;
@@ -96,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
         if (server == null) {
             server = new BusServer();
         }
-        server.listen();//开始监听
+        server.bind();//开始监听
         Intent i = new Intent(getApplicationContext(), NodesService.class);
         if (notifier == null) {
             notifier = new Notifier();//start local client

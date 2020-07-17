@@ -1,11 +1,21 @@
-package com.hehr.lib.socket;
+package com.hehr.lib;
 
 public interface IBus {
 
     /**
-     * socket bind address
+     * local socket bind address
      */
     String DEFAULT_ADDRESS = "CN.HEHR.LOCAL.BUS";
+
+    /**
+     * socket host
+     */
+    String DEFAULT_HOST = "localhost";
+
+    /**
+     * socket  port
+     */
+    int DEFAULT_PORT = 49999;
 
 
     /**
