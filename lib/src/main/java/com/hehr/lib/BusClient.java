@@ -4,8 +4,6 @@ import android.net.LocalSocket;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.hehr.lib.bus.IClient;
-
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

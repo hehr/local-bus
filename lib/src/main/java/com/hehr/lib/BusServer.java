@@ -204,18 +204,18 @@ public class BusServer implements IServer {
     /**
      * subscribed topics lst
      */
-    private volatile Map<String, Set<String>> subscribeLst = new HashMap<>();
+    private volatile Map<String, Set<String>> subscribeLst = new HashMap ();
     /**
      * mount node names lst
      */
-    private volatile Map<String, InnerHolder> innerLst = new HashMap<>();
+    private volatile Map<String, InnerHolder> innerLst = new HashMap ();
 
     /**
      * 注册rpc 消息的节点关系映射
      * k topic
      * v 节点名称
      */
-    private volatile Map<String, String> rpcLst = new HashMap<>();
+    private volatile Map<String, String> rpcLst = new HashMap ();
 
 
     /**
@@ -233,7 +233,7 @@ public class BusServer implements IServer {
         }
     }
 
-    private Map<String, String> calledLst = new HashMap<>();
+    private Map<String, String> calledLst = new HashMap ();
 
     /**
      * 收到client 发出的rpc请求

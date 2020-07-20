@@ -7,13 +7,6 @@ import android.os.Parcel;
 import android.text.TextUtils;
 import android.util.Log;
 
-
-import com.hehr.lib.IBus;
-import com.hehr.lib.IRpc;
-import com.hehr.lib.ISocketHolder;
-import com.hehr.lib.Multipart;
-import com.hehr.lib.RpcCallback;
-
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
@@ -169,7 +162,7 @@ public abstract class SocketHolder implements Runnable, ISocketHolder {
     /**
      * topic & IRpc mapping
      */
-    private Map<String, IRpc> rpcLst = new HashMap<>();
+    private Map<String, IRpc> rpcLst = new HashMap ();
 
     @Override
     public void registeredRpc(String topic, IRpc rpc) {

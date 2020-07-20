@@ -13,7 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import com.hehr.lib.BusServer;
-import com.hehr.lib.bus.IClient;
+import com.hehr.lib.IClient;
 
 import cn.hehr.binder.BinderPool;
 import cn.hehr.binder.IBinderPoolImpl;
@@ -176,6 +176,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (RemoteException e) {
             e.printStackTrace();
         }
+
     }
 
     private void stopByBinder() {

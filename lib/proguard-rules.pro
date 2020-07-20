@@ -19,3 +19,39 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+#-libraryjars /usr/java/jdk1.8/lib/dt.jar
+
+#-libraryjars libs/android.jar
+
+-optimizationpasses 5                                                           # 指定代码的迭代优化次数
+-dontusemixedcaseclassnames                                                     # 不使用大小写名称的类名
+-dontskipnonpubliclibraryclasses                                                # 指定不去忽略非公共的库类
+-dontpreverify                                                                  # 混淆时是否做预校验
+-verbose                                                                        # 混淆时是否记录日志
+-optimizations !code/simplification/arithmetic,!field/*,!class/merging/*
+
+
+-renamesourcefileattribute SourceFile
+-keepattributes Exceptions,InnerClasses,Signature,Deprecated,SourceFile,LineNumberTable,*Annotation*,EnclosingMethod
+
+
+-keep public class com.hehr.lib.BusClient{
+ public  *;
+}
+
+-keep public class com.hehr.lib.BusServer{
+ public  *;
+}
+
+-keep interface com.hehr.lib.IRpc{
+    public protected *;
+}
+
+-keep interface com.hehr.lib.IClient{
+    public protected *;
+}
+
+-keepnames class com.hehr.lib.IClient$*{
+    public *;
+}
+

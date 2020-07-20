@@ -29,5 +29,4 @@ public class Notifier extends BusClient {
     public void onDisconnect() {
         unsubscribe("recorder.pcm");
     }
-
 }

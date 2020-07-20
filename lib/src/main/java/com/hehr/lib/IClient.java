@@ -1,9 +1,7 @@
-package com.hehr.lib.bus;
+package com.hehr.lib;
 
 import android.os.Bundle;
 
-import com.hehr.lib.IBus;
-import com.hehr.lib.IRpc;
 
 /**
  * client interface
@@ -73,11 +71,11 @@ public interface IClient extends IBus {
     void close();
 
     /**
-     * 重复的rpc请求
+     * client RemoteException
      */
-    class RemoteException extends Exception {
+    public class RemoteException extends RuntimeException {
 
-        private static String error = "重复的rpc请求";
+        private final static String error = "重复的rpc请求";
 
         public RemoteException() {
             this(error);
