@@ -1,7 +1,7 @@
 package com.hehr.lib;
 
-import android.os.Bundle;
 
+import com.hehr.lib.multipart.Extra;
 
 /**
  * client interface
@@ -16,7 +16,7 @@ public interface IClient extends IBus {
      * @param topic topic
      * @param data  message data
      */
-    void onReceived(String topic, Bundle data);
+    void onReceived(String topic, Extra data);
 
     /**
      * join bus
@@ -24,6 +24,13 @@ public interface IClient extends IBus {
      * @return name
      */
     String join();
+
+
+    /**
+     * close connect
+     */
+    void close();
+
 
     /**
      * subscribe topic
@@ -39,52 +46,20 @@ public interface IClient extends IBus {
      */
     void unsubscribe(String... topics);
 
+
     /**
-     * registered rpc call
+     * publish topic with extra
      *
      * @param topic topic
-     * @param rpc   {@link IRpc}
+     * @param data  data
      */
-    void registered(String topic, IRpc rpc);
+    void publish(String topic, Extra data);
 
     /**
-     * send broadcast
+     * publish topic without extra
      *
      * @param topic topic
-     * @param data  data {@link Bundle}
      */
-    void publish(String topic, Bundle data);
-
-    /**
-     * rpc call
-     *
-     * @param topic String
-     * @param data  {@link Bundle}
-     * @return result
-     * @throws RemoteException {@link RemoteException}
-     */
-    Bundle call(String topic, Bundle data) throws RemoteException;
-
-    /**
-     * client quit actively
-     */
-    void close();
-
-    /**
-     * client RemoteException
-     */
-    public class RemoteException extends RuntimeException {
-
-        private final static String error = "重复的rpc请求";
-
-        public RemoteException() {
-            this(error);
-        }
-
-        public RemoteException(String message) {
-            super(message);
-        }
-    }
-
+    void publish(String topic);
 
 }

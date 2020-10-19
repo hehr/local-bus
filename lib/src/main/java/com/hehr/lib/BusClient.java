@@ -1,132 +1,211 @@
 package com.hehr.lib;
 
-import android.net.LocalSocket;
-import android.os.Bundle;
-import android.util.Log;
 
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
+import com.hehr.lib.multipart.Extra;
+import com.hehr.lib.multipart.Multipart;
+import com.hehr.lib.socket.Client;
+import com.hehr.lib.socket.Socket;
+
+import java.io.IOException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * socket client impl
  *
  * @author hehr
  */
-public abstract class BusClient implements IClient {
+public abstract class BusClient implements IClient, ThreadFactory {
 
-    public BusClient() {
-        connect();
+    @Override
+    public Thread newThread(Runnable r) {
+        return new Thread(r, "client-" + join());
     }
 
-    private ExecutorService mExecuteThread = Executors.newSingleThreadExecutor(new ThreadFactory() {
-        @Override
-        public Thread newThread(Runnable r) {
-            return new Thread(r, "client-" + join());
-        }
-    });
-
-    /**
-     * socket holder
-     */
-    private class InnerHolder extends SocketHolder {
-
-        /**
-         * 节点退出
-         */
-        public void exit() {
-            if (isConnect())
-                write(new Multipart(Type.exit, "client.exit"));
-            disconnect();
-            onDisconnect();
-        }
-
-        @Override
-        public void run() {
-
-            if (!isConnect()) {
-                if (mSocket == null) {
-                    setSocket(new LocalSocket());
-                }
-                connect(DEFAULT_ADDRESS); //阻塞方法
-            }
-
-            while (isConnect()) {
-                try {
-                    Multipart multipart;
-                    if ((multipart = read()) != null && !multipart.isEmpty()) {
-                        int type = multipart.type;
-                        String topic = multipart.topic;
-                        switch (type) {
-                            case Type.bct:
-                                onReceived(topic, multipart.args);
-                                break;
-                            case Type.exit:
-                                exit();
-                                break;
-                            case Type.callbacked:
-                                callbacked(multipart);
-                                break;
-                            case Type.rpced:
-                                called(multipart);
-                                break;
-                            case Type.pong: // alive check
-                                Log.d(join(), "receive pong .");
-                                break;
-                            default:
-                                throw new IllegalStateException("unknown bus client type");
-                        }
-                    }
-                } finally {
-                    if ((System.currentTimeMillis() / 1000) - lastTimeStamp > 10) {//10s check 一次消息
-                        Log.d(join(), "send ping .");
-                        write(new Multipart(Type.ping, "client.ping"));
-                        lastTimeStamp = ((System.currentTimeMillis() / 1000));
-                    }
-                    if (writeFailTime >= 10) {
-                        exit();
-                    }
-                    try {
-                        Thread.sleep(1);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-
-        private long lastTimeStamp = System.currentTimeMillis() / 1000;
-
-
-        @Override
-        protected void connected() {
-            super.connected();
-            Bundle joinBundle = new Bundle();
-            joinBundle.putString("client.name", join());
-            write(new Multipart(Type.join, "client.join").setArgs(joinBundle));
-            setName(join());
-            onConnected();
-        }
-    }
 
     /**
      * sock holder
      */
     private InnerHolder mHolder;
 
-    /**
-     * connect socket server
-     */
-    private void connect() {
-        mHolder = new InnerHolder();
-        mExecuteThread.execute(mHolder);
+    public BusClient() {
+
+        mExecuteThread.execute(new Runnable() {
+
+            Lock lock = new ReentrantLock();
+
+            Condition isConnected = lock.newCondition();
+
+            @Override
+            public void run() {
+
+                Socket socket = new Client().connect(DEFAULT_ADDRESS);
+
+                lock.lock();
+                try {
+                    while (socket == null) {
+                        android.util.Log.d(join(), "connect failed ,try it again ... ");
+                        isConnected.await(100, TimeUnit.MILLISECONDS);
+                        socket = new Client().connect(DEFAULT_ADDRESS);
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } finally {
+                    lock.unlock();
+                }
+
+                android.util.Log.d(join(), join() + " connect " + DEFAULT_ADDRESS + " server success ,connect states : " + socket.isConnect());
+
+                mHolder = new InnerHolder(socket);
+
+                mExecuteThread.execute(mHolder);
+
+            }
+        });
+
+    }
+
+    private java.util.concurrent.ExecutorService mExecuteThread = Executors.newSingleThreadExecutor(this);
+
+
+    private class InnerHolder implements Runnable {
+
+        private volatile boolean isRunning = false;
+
+        private Socket mSocket;
+
+        public InnerHolder(Socket socket) {
+            this.mSocket = socket;
+
+        }
+
+        public void write(Multipart multipart) {
+            synchronized (this) {
+                if (isConnect()) {
+                    try {
+                        mSocket.write(multipart);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    android.util.Log.e(join(), "write failed , connect have broken !");
+                }
+            }
+        }
+
+        public boolean isConnect() {
+            return mSocket != null && mSocket.isConnect();
+        }
+
+        public void close() {
+
+            write(Multipart.newBuilder()
+                    .setName(join())
+                    .setType(Type.exit.value)
+                    .setTopic("client.exit")
+                    .build());
+
+            isRunning = false;
+
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    onExit();
+                }
+            }).start();
+
+        }
+
+        @Override
+        public void run() {
+
+            if (mSocket.isConnect()) {
+
+                write(Multipart.newBuilder()
+                        .setType(Type.join.value)
+                        .setName(join())
+                        .setTopic("client.join")
+                        .setExtra(Extra.newBuilder()
+                                .setCharacter(join())
+                                .build())
+                        .build()
+                );
+
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        onCrete();
+                    }
+                }).start();
+
+                isRunning = true;
+
+            } else {
+                throw new IllegalStateException("connect is invalid ... ");
+            }
+
+            try {
+
+                Multipart multipart;
+
+                while (isRunning && mSocket.isConnect()) {
+                    try {
+                        if ((multipart = mSocket.read()) != null) {
+                            switch (Type.findTypeByInteger(multipart.getType())) {
+                                case broadcast:
+                                    onReceived(multipart.getTopic(), multipart.getExtra());
+                                    break;
+                                case exit:
+                                    close();
+                                    break;
+                                default:
+                                    throw new IllegalStateException("unknown bus client type");
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                }
+
+                android.util.Log.d(join(), join() + " has exits .");
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }
+
     }
 
     @Override
-    public void publish(String topic, Bundle data) {
+    public void publish(String topic) {
         if (mHolder != null && mHolder.isConnect()) {
-            mHolder.write(new Multipart(Type.bct, topic).setArgs(data));
+            android.util.Log.d(join(), join() + " publish topic " + topic);
+            mHolder.write(Multipart.newBuilder()
+                    .setName(join())
+                    .setType(Type.broadcast.value)
+                    .setTopic(topic)
+                    .build()
+            );
+        }
+    }
+
+    @Override
+    public void publish(String topic, Extra data) {
+        if (mHolder != null && mHolder.isConnect()) {
+            android.util.Log.d(join(), join() + " publish topic " + topic);
+            mHolder.write(Multipart.newBuilder()
+                    .setName(join())
+                    .setType(Type.broadcast.value)
+                    .setTopic(topic)
+                    .setExtra(data)
+                    .build()
+            );
         }
     }
 
@@ -135,7 +214,12 @@ public abstract class BusClient implements IClient {
     public void subscribe(String... topics) {
         if (mHolder != null && mHolder.isConnect()) {
             for (String topic : topics) {
-                mHolder.write(new Multipart(Type.subscribe, topic));
+                mHolder.write(Multipart.newBuilder()
+                        .setName(join())
+                        .setType(Type.subscribe.value)
+                        .setTopic(topic)
+                        .build()
+                );
             }
         }
     }
@@ -144,7 +228,12 @@ public abstract class BusClient implements IClient {
     public void unsubscribe(String... topics) {
         if (mHolder != null && mHolder.isConnect()) {
             for (String topic : topics) {
-                mHolder.write(new Multipart(Type.unsubscribe, topic));
+                mHolder.write(Multipart.newBuilder()
+                        .setName(join())
+                        .setTopic(topic)
+                        .setType(Type.unsubscribe.value)
+                        .build()
+                );
             }
         }
     }
@@ -152,57 +241,14 @@ public abstract class BusClient implements IClient {
     @Override
     public void close() {
         if (mHolder != null && mHolder.isConnect()) {
-            mHolder.exit();
+            mHolder.close();
         }
     }
 
-    @Override
-    public void registered(String topic, IRpc rpc) {
-        if (mHolder != null && mHolder.isConnect()) {
-            mHolder.registeredRpc(topic, rpc);
-        }
-    }
+    public abstract void onCrete();
 
-    private volatile boolean isRpcing = false;
 
-    @Override
-    public Bundle call(String topic, Bundle param) throws RemoteException {
-        if (isRpcing)
-            throw new RemoteException();
-        else {
-            synchronized (this) {
-                isRpcing = true;
-                if (mHolder != null && mHolder.isConnect()) {
-                    try {
-                        Multipart multipart = new Multipart(Type.rpc, topic);
-                        if (param != null) {
-                            multipart.setArgs(param);
-                        }
-                        Bundle bundle = mHolder.call(multipart);
-                        isRpcing = false;
-                        return bundle;
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    } catch (ExecutionException e) {
-                        e.printStackTrace();
-                    }
-                }
-                isRpcing = false;
-                return null;
-            }
-        }
-
-    }
-
-    /**
-     * 连接完成
-     */
-    public abstract void onConnected();
-
-    /**
-     * 连接退出
-     */
-    public abstract void onDisconnect();
+    public abstract void onExit();
 
 
 }

@@ -42,7 +42,7 @@ def releaseTime() {
 }
 
 def moduleName = 'local-bus'
-def version = '1.0.1'
+def version = '1.0.3'
 def releaseName = moduleName + "_" + version + "_" + releaseTime()
 def outPath = 'output/'
 def zipFile = file('build/intermediates/packaged-classes/release/classes.jar')

@@ -13,7 +13,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import com.hehr.lib.BusServer;
-import com.hehr.lib.IClient;
 
 import cn.hehr.binder.BinderPool;
 import cn.hehr.binder.IBinderPoolImpl;
@@ -93,10 +92,7 @@ public class MainActivity extends AppCompatActivity {
      * 使用 socket bus 方式进行通信
      */
     private void initBus() {
-        if (server == null) {
-            server = new BusServer();
-        }
-        server.bind();//开始监听
+        server = new BusServer();
         Intent i = new Intent(getApplicationContext(), NodesService.class);
         if (notifier == null) {
             notifier = new Notifier();//start local client
@@ -134,35 +130,6 @@ public class MainActivity extends AppCompatActivity {
 
         //2.stop by socket bus
         stopBySocketBus();
-
-    }
-
-    public void clickRpc(View v) {
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Bundle bundle = new Bundle();
-                bundle.putInt("int", 111);
-
-                Bundle ret = null;
-                try {
-                    ret = notifier.call("remoter.increase", bundle);
-                } catch (IClient.RemoteException e) {
-                    e.printStackTrace();
-                }
-                Log.e(TAG, "ret result :" + (ret == null ? " null result " : ret.getInt("ret")));
-
-                Bundle ret1 = null;
-                try {
-                    ret1 = notifier.call("recorder.increase", bundle);
-                } catch (IClient.RemoteException e) {
-                    e.printStackTrace();
-                }
-                Log.e(TAG, "ret1 result :" + (ret1 == null ? " null result " : ret1.getInt("ret")));
-            }
-        }).start();
-
 
     }
 
