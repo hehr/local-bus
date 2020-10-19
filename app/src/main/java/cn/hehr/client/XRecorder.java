@@ -1,11 +1,9 @@
 package cn.hehr.client;
 
-import android.os.Bundle;
 import android.util.Log;
 
-
-import com.hehr.lib.IRpc;
 import com.hehr.lib.BusClient;
+import com.hehr.lib.multipart.Extra;
 
 import cn.hehr.recorder.Recorder;
 import cn.hehr.recorder.RecorderListener;
@@ -17,21 +15,17 @@ public class XRecorder extends BusClient implements RecorderListener {
     private Recorder mRecorder = new Recorder();
 
     @Override
-    public void onReceived(String topic, Bundle data) {
+    public void onReceived(String topic, Extra data) {
         switch (topic) {
             case "recorder.start":
-
                 if (mRecorder != null) {
                     mRecorder.start(this);
                 }
-
                 break;
             case "recorder.stop":
-
                 if (mRecorder != null) {
                     mRecorder.stop();
                 }
-
                 break;
             default:
                 break;
@@ -44,27 +38,14 @@ public class XRecorder extends BusClient implements RecorderListener {
     }
 
     @Override
-    public void onConnected() {
+    public void onCrete() {
         Log.e(TAG, "RecorderNode connected");
         mRecorder.create(1);
         subscribe("recorder.start", "recorder.stop");
-        registered("recorder.increase", new IRpc() {
-            @Override
-            public Bundle invoke(Bundle bundle) {
-                bundle.putInt("ret", 100 + bundle.getInt("int"));
-                try {
-                    Thread.sleep(1000 * 1);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                return bundle;
-            }
-        });
-
     }
 
     @Override
-    public void onDisconnect() {
+    public void onExit() {
         mRecorder.stop();
         mRecorder.release();
         mRecorder = null;
@@ -77,9 +58,9 @@ public class XRecorder extends BusClient implements RecorderListener {
 
     @Override
     public void onDataReceived(byte[] buffer, int size) {
-        Bundle bundle = new Bundle();
-        bundle.putByteArray("pcm", buffer);
-        publish("recorder.pcm", bundle);
+        publish("recorder.pcm", Extra.newBuilder()
+                .setBinary(buffer)
+                .build());
     }
 
     @Override

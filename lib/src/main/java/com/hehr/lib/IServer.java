@@ -8,14 +8,6 @@ package com.hehr.lib;
 public interface IServer extends IBus {
 
     /**
-     * start listen
-     *
-     * @return address connect address
-     */
-    void bind();
-
-
-    /**
      * 断开连接
      */
     void close();

@@ -35,23 +35,7 @@
 -keepattributes Exceptions,InnerClasses,Signature,Deprecated,SourceFile,LineNumberTable,*Annotation*,EnclosingMethod
 
 
--keep public class com.hehr.lib.BusClient{
- public  *;
-}
+-keep public class com.hehr.lib.*{public *;}
 
--keep public class com.hehr.lib.BusServer{
- public  *;
-}
 
--keep interface com.hehr.lib.IRpc{
-    public protected *;
-}
-
--keep interface com.hehr.lib.IClient{
-    public protected *;
-}
-
--keepnames class com.hehr.lib.IClient$*{
-    public *;
-}
-
+-keep public class com.hehr.lib.multipart.*{public *;}
