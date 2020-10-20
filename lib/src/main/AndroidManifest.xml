@@ -1,2 +1,4 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.hehr.lib" />
+    package="com.hehr.lib"
+    android:versionCode="1"
+    android:versionName="" />

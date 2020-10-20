@@ -8,6 +8,12 @@ repositories {
     mavenCentral()
 }
 
+def code = '1.0.3'
+def moduleName = 'local-bus'
+def releaseName = moduleName + "_" + code + "_" + releaseTime()
+def outPath = 'output/'
+def zipFile = file('build/intermediates/shrunk_classes/release/shrunkClasses.jar')
+
 android {
 
     compileSdkVersion 26
@@ -16,6 +22,8 @@ android {
     defaultConfig {
         minSdkVersion 10
         targetSdkVersion 26
+        versionCode  1
+        versionName releaseName
     }
 
     sourceSets {
@@ -41,11 +49,6 @@ def releaseTime() {
     return new Date().format("yyyyMMdd", TimeZone.getTimeZone("GMT+08:00"))
 }
 
-def moduleName = 'local-bus'
-def version = '1.0.3'
-def releaseName = moduleName + "_" + version + "_" + releaseTime()
-def outPath = 'output/'
-def zipFile = file('build/intermediates/packaged-classes/release/classes.jar')
 
 task clear(type: Delete) {
     delete outPath
