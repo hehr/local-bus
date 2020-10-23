@@ -2,11 +2,11 @@ package cn.hehr.client;
 
 import android.util.Log;
 
-import com.hehr.lib.BusClient;
-import com.hehr.lib.multipart.Extra;
+import com.hehr.lib.protocol.multipart.Extra;
+import com.hehr.lib.netty.NettyClient;
 
 
-public class Remoter extends BusClient {
+public class Remoter extends NettyClient {
 
     private final String TAG = "RemoteNode";
 

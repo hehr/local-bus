@@ -2,13 +2,13 @@ package cn.hehr.client;
 
 import android.util.Log;
 
-import com.hehr.lib.BusClient;
-import com.hehr.lib.multipart.Extra;
+import com.hehr.lib.protocol.multipart.Extra;
+import com.hehr.lib.netty.NettyClient;
 
 import cn.hehr.recorder.Recorder;
 import cn.hehr.recorder.RecorderListener;
 
-public class XRecorder extends BusClient implements RecorderListener {
+public class XRecorder extends NettyClient implements RecorderListener {
 
     private final String TAG = "RecorderNode";
 

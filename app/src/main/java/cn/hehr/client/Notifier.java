@@ -2,11 +2,14 @@ package cn.hehr.client;
 
 import android.util.Log;
 
-import com.hehr.lib.BusClient;
-import com.hehr.lib.multipart.Extra;
+import com.hehr.lib.protocol.multipart.Extra;
+import com.hehr.lib.netty.NettyClient;
 
 
-public class Notifier extends BusClient {
+/**
+ * @author hehr
+ */
+public class Notifier extends NettyClient {
 
     private static final String TAG = "NotifyNode";
 

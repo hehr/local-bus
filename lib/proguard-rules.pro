@@ -38,4 +38,4 @@
 -keep public class com.hehr.lib.*{public *;}
 
 
--keep public class com.hehr.lib.multipart.*{public *;}
+-keep public class com.hehr.lib.protocol.multipart.*{public *;}

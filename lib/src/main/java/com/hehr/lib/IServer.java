@@ -7,6 +7,8 @@ package com.hehr.lib;
  */
 public interface IServer extends IBus {
 
+
+
     /**
      * 断开连接
      */

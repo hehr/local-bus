@@ -22,7 +22,7 @@ android {
     defaultConfig {
         minSdkVersion 10
         targetSdkVersion 26
-        versionCode  1
+        versionCode 1
         versionName releaseName
     }
 
@@ -45,6 +45,11 @@ android {
     }
 }
 
+dependencies {
+    //netty
+    implementation "io.netty:netty-all:4.1.52.Final"
+}
+
 def releaseTime() {
     return new Date().format("yyyyMMdd", TimeZone.getTimeZone("GMT+08:00"))
 }
@@ -56,10 +61,12 @@ task clear(type: Delete) {
 
 task makeJar(type: Jar) {
     from zipTree(zipFile)
-    from fileTree(dir:'src/main'  , includes: ['assets/'])
+    from fileTree(dir: 'src/main', includes: ['assets/'])
     baseName = releaseName
     destinationDir = file(outPath)
 }
 
 makeJar.dependsOn(clear, build)
+
+
 

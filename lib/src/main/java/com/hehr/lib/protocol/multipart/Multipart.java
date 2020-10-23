@@ -1,15 +1,20 @@
-package com.hehr.lib.multipart;
+package com.hehr.lib.protocol.multipart;
 
 import android.text.TextUtils;
 
 import com.hehr.lib.IBus;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.UnsupportedEncodingException;
 
 /**
  * multipart run in local bus
  *
  * @author hehr
  */
-public class Multipart implements android.os.Parcelable, Cloneable {
+public class Multipart {
 
     /**
      * 操作符
@@ -28,24 +33,6 @@ public class Multipart implements android.os.Parcelable, Cloneable {
      */
     private Extra extra;
 
-    protected Multipart(android.os.Parcel in) {
-        type = in.readInt();
-        topic = in.readString();
-        extra = in.readParcelable(Extra.class.getClassLoader());
-        name = in.readString();
-    }
-
-    public static final Creator<Multipart> CREATOR = new Creator<Multipart>() {
-        @Override
-        public Multipart createFromParcel(android.os.Parcel in) {
-            return new Multipart(in);
-        }
-
-        @Override
-        public Multipart[] newArray(int size) {
-            return new Multipart[size];
-        }
-    };
 
     public int getType() {
         return type;
@@ -77,20 +64,6 @@ public class Multipart implements android.os.Parcelable, Cloneable {
 
     public static Builder newBuilder() {
         return new Builder();
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-
-    @Override
-    public void writeToParcel(android.os.Parcel dest, int flags) {
-        dest.writeInt(type);
-        dest.writeString(topic);
-        dest.writeParcelable(extra, flags);
-        dest.writeString(name);
     }
 
 
@@ -137,17 +110,71 @@ public class Multipart implements android.os.Parcelable, Cloneable {
 
     }
 
+
     @Override
     public String toString() {
         return "Multipart{" +
                 "type=" + type +
                 ", topic='" + topic + '\'' +
+                ", name='" + name + '\'' +
                 ", extra=" + extra +
                 '}';
     }
 
-    @Override
-    public Multipart clone() throws CloneNotSupportedException {
-        return (Multipart) super.clone();
+
+    /**
+     * encode multipart
+     *
+     * @return byte[]
+     * @throws JSONException
+     * @throws UnsupportedEncodingException
+     */
+    public byte[] encode() throws JSONException, UnsupportedEncodingException {
+
+        JSONObject json = new JSONObject();
+        json.put("type", type);
+        json.put("topic", topic);
+        json.put("name", name);
+        if (extra != null && !extra.isEmpty()) {
+            json.put("extra", extra.toJson());
+        }
+
+        return json.toString().getBytes();
+
     }
+
+    /**
+     * decode  bytes
+     *
+     * @param bytes 报文
+     * @return {@link Multipart}
+     * @throws UnsupportedEncodingException
+     * @throws JSONException
+     */
+    public static Multipart decode(byte[] bytes) throws UnsupportedEncodingException, JSONException {
+        return decode(bytes, true);
+    }
+
+    /**
+     * decode  bytes
+     *
+     * @param bytes      报文
+     * @param isComplete 是否完整解码
+     * @return {@link Multipart}
+     * @throws UnsupportedEncodingException
+     * @throws JSONException
+     */
+    public static Multipart decode(byte[] bytes, boolean isComplete) throws UnsupportedEncodingException, JSONException {
+        JSONObject json = new JSONObject(new String(bytes, "utf-8"));
+        Builder builder = newBuilder();
+        builder.setType(json.getInt("type"));
+        builder.setName(json.getString("name"));
+        builder.setTopic(json.getString("topic"));
+        if (isComplete && json.has("extra")) {
+            builder.setExtra(Extra.transform(json.optJSONObject("extra")));
+        }
+        return builder.build();
+    }
+
+
 }

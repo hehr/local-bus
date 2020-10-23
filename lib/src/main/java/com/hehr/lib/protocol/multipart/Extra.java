@@ -1,8 +1,15 @@
-package com.hehr.lib.multipart;
+package com.hehr.lib.protocol.multipart;
 
+import android.text.TextUtils;
+import android.util.Base64;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 
-public class Extra implements android.os.Parcelable {
+public class Extra {
 
     private String character;
 
@@ -11,25 +18,6 @@ public class Extra implements android.os.Parcelable {
     private byte[] binary;
 
     private double digital;
-
-    protected Extra(android.os.Parcel in) {
-        character = in.readString();
-        bool = in.readByte() != 0;
-        binary = in.createByteArray();
-        digital = in.readDouble();
-    }
-
-    public static final Creator<Extra> CREATOR = new Creator<Extra>() {
-        @Override
-        public Extra createFromParcel(android.os.Parcel in) {
-            return new Extra(in);
-        }
-
-        @Override
-        public Extra[] newArray(int size) {
-            return new Extra[size];
-        }
-    };
 
     public String getCharacter() {
         return character;
@@ -60,19 +48,6 @@ public class Extra implements android.os.Parcelable {
 
     public static Builder newBuilder() {
         return new Builder();
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(android.os.Parcel dest, int flags) {
-        dest.writeString(character);
-        dest.writeByte((byte) (bool ? 1 : 0));
-        dest.writeByteArray(binary);
-        dest.writeDouble(digital);
     }
 
     public static class Builder {
@@ -118,5 +93,62 @@ public class Extra implements android.os.Parcelable {
                 ", binary=" + Arrays.toString(binary) +
                 ", digital=" + digital +
                 '}';
+    }
+
+    boolean isEmpty() {
+        return TextUtils.isEmpty(character) && bool == false && binary == null && digital == 0;
+
+    }
+
+    /**
+     * 转JSON
+     *
+     * @return {@link JSONObject}
+     * @throws JSONException
+     * @throws UnsupportedEncodingException
+     */
+    public JSONObject toJson() throws JSONException {
+
+        JSONObject json = new JSONObject();
+
+        json.put("character", character);
+
+        json.put("bool", bool);
+
+        json.put("binary", Base64.encodeToString(binary, Base64.NO_WRAP));
+
+        json.put("digital", digital);
+
+        return json;
+    }
+
+    /**
+     * transform json to Extra
+     *
+     * @param json
+     * @return {@link Extra}
+     */
+    public static Extra transform(JSONObject json) {
+
+        Builder builder = newBuilder();
+
+        if (json.has("character")) {
+            builder.setCharacter(json.optString("builder"));
+        }
+
+        if (json.has("bool")) {
+            builder.setBool(json.optBoolean("bool"));
+        }
+
+        if (json.has("binary")) {
+            builder.setBinary(Base64.decode(json.optString("binary"), Base64.NO_WRAP));
+        }
+
+        if (json.has("digital")) {
+            builder.setDigital(json.optDouble("digital"));
+        }
+
+        return builder.build();
+
     }
 }

@@ -12,7 +12,7 @@ import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
-import com.hehr.lib.BusServer;
+import com.hehr.lib.netty.NettyServer;
 
 import cn.hehr.binder.BinderPool;
 import cn.hehr.binder.IBinderPoolImpl;
@@ -31,7 +31,11 @@ public class MainActivity extends AppCompatActivity {
         verifyAudioPermissions(this);
 
 //        //1 初始化 socket bus
-        initBus();
+        try {
+            initBus();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
 //        2.初始化binderPool
 //        initPool();
@@ -41,9 +45,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        server.close();
         notifier.close();
-        server = null;
         notifier = null;
 
     }
@@ -84,20 +86,39 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private BusServer server;
-
     private Notifier notifier;
 
     /**
      * 使用 socket bus 方式进行通信
      */
-    private void initBus() {
-        server = new BusServer();
+    private void initBus() throws InterruptedException {
+
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                //1.bind server
+                new NettyServer().bind();
+
+            }
+        }).start();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(500);
+                    notifier = new Notifier();//start local client
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+
+
         Intent i = new Intent(getApplicationContext(), NodesService.class);
-        if (notifier == null) {
-            notifier = new Notifier();//start local client
-        }
         startService(i);//start remote server
+
     }
 
     /**

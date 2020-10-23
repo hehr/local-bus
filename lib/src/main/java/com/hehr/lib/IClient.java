@@ -1,7 +1,7 @@
 package com.hehr.lib;
 
 
-import com.hehr.lib.multipart.Extra;
+import com.hehr.lib.protocol.multipart.Extra;
 
 /**
  * client interface
