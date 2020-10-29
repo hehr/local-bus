@@ -1,12 +1,10 @@
-package com.hehr.lib;
+package com.hehr.lib.netty;
 
 public interface IBus {
 
     int DEFAULT_PORT = 50001;
 
-    String IP = "127.0.0.1";
-
-    String DELIMITER = "\t" + "&";
+    String DEFAULT_IP = "127.0.0.1";
 
     /**
      * bus operate type

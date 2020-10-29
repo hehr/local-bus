@@ -4,8 +4,7 @@ package com.hehr.lib.netty;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.hehr.lib.IBus;
-import com.hehr.lib.protocol.multipart.Multipart;
+import com.hehr.lib.proto.RespProto;
 
 import org.json.JSONException;
 
@@ -16,7 +15,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -25,11 +23,16 @@ import io.netty.handler.timeout.IdleStateEvent;
 
 
 @ChannelHandler.Sharable
-public class EventDispatcher extends SimpleChannelInboundHandler<ByteBuf> {
+public class EventDispatcher extends SimpleChannelInboundHandler<RespProto.Resp> {
 
     private static final String TAG = "bus";
 
     private EventDispatcher() {
+    }
+
+    @Override
+    protected void channelRead0(ChannelHandlerContext ctx, RespProto.Resp msg) throws Exception {
+        dispatch(ctx, msg);
     }
 
     private Map<String, Channel> innerLst = new HashMap<>();
@@ -39,18 +42,14 @@ public class EventDispatcher extends SimpleChannelInboundHandler<ByteBuf> {
      */
     private Map<String, Set<String>> subscribeLst = new HashMap<>();
 
-
     /**
      * 分发处理报文
      *
      * @param ctx
-     * @param dst
      * @throws UnsupportedEncodingException
      * @throws JSONException
      */
-    private void dispatch(ChannelHandlerContext ctx, byte[] dst, int length) throws UnsupportedEncodingException, JSONException {
-
-        Multipart multipart = Multipart.decode(dst, false);//半拆包
+    private void dispatch(ChannelHandlerContext ctx, RespProto.Resp multipart) {
 
         final String name = multipart.getName();
         String topic = multipart.getTopic();
@@ -84,11 +83,7 @@ public class EventDispatcher extends SimpleChannelInboundHandler<ByteBuf> {
                             Log.d(TAG, " >>> bus-" + target + " <<< " + " received topic " + topic + " from " + " >>> " + name + " <<< ");
                             Channel channel = innerLst.get(target);
                             if (channel.isActive() && channel.isWritable()) {
-                                ByteBuf buf = channel.alloc().buffer();
-                                buf.writeInt(length);
-                                buf.writeBytes(dst);
-                                buf.writeBytes(IBus.DELIMITER.getBytes());
-                                channel.writeAndFlush(buf);//转发原始报文
+                                channel.writeAndFlush(multipart);//转发原始报文
                             } else {
                                 Log.e(TAG, name + " channel is close , drop topic " + topic);
                             }
@@ -142,28 +137,6 @@ public class EventDispatcher extends SimpleChannelInboundHandler<ByteBuf> {
         }
     }
 
-
-    @Override
-    protected void channelRead0(ChannelHandlerContext ctx, ByteBuf in) throws Exception {
-
-        if (in.readableBytes() <= 4) {
-            return;
-        }
-
-        int length = in.readInt();
-
-        if (length < 20) {
-            Log.d(TAG, "drop illegal multipart .");
-            return;
-        }
-
-        byte[] dst = new byte[length];
-
-        in.readBytes(dst);
-
-        dispatch(ctx, dst, length);
-
-    }
 
     private static class SingleHolder {
         private static EventDispatcher INSTANCE = new EventDispatcher();

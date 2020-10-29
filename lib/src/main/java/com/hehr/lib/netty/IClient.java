@@ -1,7 +1,7 @@
-package com.hehr.lib;
+package com.hehr.lib.netty;
 
 
-import com.hehr.lib.protocol.multipart.Extra;
+import com.hehr.lib.proto.RespProto;
 
 /**
  * client interface
@@ -16,7 +16,7 @@ public interface IClient extends IBus {
      * @param topic topic
      * @param data  message data
      */
-    void onReceived(String topic, Extra data);
+    void onReceived(String topic, RespProto.Resp.Extra data);
 
     /**
      * join bus
@@ -53,7 +53,7 @@ public interface IClient extends IBus {
      * @param topic topic
      * @param data  data
      */
-    void publish(String topic, Extra data);
+    void publish(String topic, RespProto.Resp.Extra data);
 
     /**
      * publish topic without extra

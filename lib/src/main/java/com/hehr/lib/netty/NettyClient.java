@@ -3,18 +3,13 @@ package com.hehr.lib.netty;
 
 import android.util.Log;
 
-import com.hehr.lib.IClient;
-import com.hehr.lib.protocol.MultipartDecoder;
-import com.hehr.lib.protocol.MultipartEncoder;
-import com.hehr.lib.protocol.multipart.Extra;
-import com.hehr.lib.protocol.multipart.Multipart;
+import com.hehr.lib.proto.RespProto.Resp;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -25,7 +20,12 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.DelimiterBasedFrameDecoder;
+import io.netty.handler.codec.protobuf.ProtobufDecoder;
+import io.netty.handler.codec.protobuf.ProtobufEncoder;
+import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder;
+import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 
 
 public abstract class NettyClient implements IClient, Runnable {
@@ -34,19 +34,32 @@ public abstract class NettyClient implements IClient, Runnable {
         new Thread(this, "client-" + join()).start();
     }
 
+
     @Override
     public void close() {
+
+        write(Resp.newBuilder()
+                .setName(join())
+                .setType(Type.exit.value)
+                .setTopic("client.exit")
+                .build());
+
+
         if (channel != null) {
             channel.close();
             channel = null;
         }
+
+        onExit();
+
+
     }
 
     @Override
     public void subscribe(String... topics) {
 
         for (String t : topics) {
-            write(Multipart.newBuilder()
+            write(Resp.newBuilder()
                     .setName(join())
                     .setType(Type.subscribe.value)
                     .setTopic(t)
@@ -58,7 +71,7 @@ public abstract class NettyClient implements IClient, Runnable {
     @Override
     public void unsubscribe(String... topics) {
         for (String t : topics) {
-            write(Multipart.newBuilder()
+            write(Resp.newBuilder()
                     .setName(join())
                     .setType(Type.unsubscribe.value)
                     .setTopic(t)
@@ -68,8 +81,8 @@ public abstract class NettyClient implements IClient, Runnable {
 
 
     @Override
-    public void publish(String topic, Extra data) {
-        write(Multipart.newBuilder()
+    public void publish(String topic, Resp.Extra data) {
+        write(Resp.newBuilder()
                 .setName(join())
                 .setType(Type.broadcast.value)
                 .setTopic(topic)
@@ -79,25 +92,23 @@ public abstract class NettyClient implements IClient, Runnable {
 
     @Override
     public void publish(String topic) {
-        write(Multipart.newBuilder()
+        write(Resp.newBuilder()
                 .setName(join())
                 .setType(Type.broadcast.value)
                 .setTopic(topic)
                 .build());
     }
 
-    private void write(Multipart multipart) {
+    private void write(Resp resp) {
         if (channel != null && channel.isOpen()) {
-            channel.writeAndFlush(multipart);
+            channel.writeAndFlush(resp);
         } else {
-            Log.e(join(), "drop multipart " + multipart.toString());
+            Log.e(join(), "drop resp " + resp.toString());
         }
     }
 
 
-    //与服务端的连接通道
     private SocketChannel channel;
-
 
     private Bootstrap bootstrap;
 
@@ -105,30 +116,33 @@ public abstract class NettyClient implements IClient, Runnable {
     @Override
     public void run() {
 
+        NioEventLoopGroup group = new NioEventLoopGroup(1, new ThreadFactory() {
+            @Override
+            public Thread newThread(Runnable runnable) {
+                return new Thread(runnable, "client-" + join());
+            }
+        });
+
         try {
 
             bootstrap = new Bootstrap()
-
                     .channel(NioSocketChannel.class)//NIO
-                    .group(new NioEventLoopGroup(1, new ThreadFactory() {
-                        @Override
-                        public Thread newThread(Runnable runnable) {
-                            return new Thread(runnable, "client-" + join());
-                        }
-                    }))
+                    .group(group)
                     .option(ChannelOption.SO_KEEPALIVE, true)//长链接
+                    .handler(new LoggingHandler(LogLevel.INFO))
                     .handler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel ch) throws Exception {
                             ch.pipeline()
-                                    .addFirst(new DelimiterBasedFrameDecoder(1024 * 1024, Unpooled.copiedBuffer((DELIMITER).getBytes())))
-                                    .addLast(new MultipartDecoder())
-                                    .addLast(new MultipartEncoder())
+                                    .addLast(new ProtobufVarint32FrameDecoder())
+                                    .addLast(new ProtobufDecoder(Resp.getDefaultInstance()))
+                                    .addLast(new ProtobufVarint32LengthFieldPrepender())
+                                    .addLast(new ProtobufEncoder())
                                     .addLast(new InnerNettyHandlerImpl());
                         }
                     });
 
-            connect(bootstrap);
+            connect(DEFAULT_IP, DEFAULT_PORT);
 
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -136,24 +150,17 @@ public abstract class NettyClient implements IClient, Runnable {
 
     }
 
-    private void connect() {
+    /**
+     * connect
+     *
+     * @param ip
+     * @param port
+     * @throws InterruptedException
+     */
+    private void connect(final String ip, final int port) throws InterruptedException {
 
         if (bootstrap != null) {
-            try {
-                connect(this.bootstrap);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        } else {
-            throw new IllegalStateException(" connect failed ,illegal state .");
-        }
-
-    }
-
-    private void connect(Bootstrap bootstrap) throws InterruptedException {
-
-        if (bootstrap != null) {
-            bootstrap.connect(new InetSocketAddress(IP, DEFAULT_PORT))
+            bootstrap.connect(new InetSocketAddress(ip, port))
                     .addListener(new ChannelFutureListener() {
                         @Override
                         public void operationComplete(ChannelFuture future) throws Exception {
@@ -165,35 +172,35 @@ public abstract class NettyClient implements IClient, Runnable {
                                 loop.schedule(new Runnable() {
                                     @Override
                                     public void run() {
-                                        connect();
+                                        try {
+                                            connect(ip, port);
+                                        } catch (InterruptedException e) {
+                                            e.printStackTrace();
+                                        }
                                     }
-                                }, 500, TimeUnit.MILLISECONDS); //链接失败后500ms重连
+                                }, 100, TimeUnit.MILLISECONDS); //链接失败后100ms重连
                             }
                         }
                     }).sync();
-
         }
 
     }
 
 
-    private class InnerNettyHandlerImpl extends SimpleChannelInboundHandler<Multipart> {
+    private class InnerNettyHandlerImpl extends SimpleChannelInboundHandler<Resp> {
 
 
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-
             Log.e(join(), "Caught exception , Throwable " + cause.getMessage());
-
             ctx.close();
-
         }
 
         @Override
-        protected void channelRead0(ChannelHandlerContext ctx, Multipart multipart) {
-            if (multipart != null) {
-                Log.d(join(), "received  multipart : " + multipart.getTopic());
-                onReceived(multipart.getTopic(), multipart.getExtra());
+        protected void channelRead0(ChannelHandlerContext ctx, Resp resp) {
+            if (resp != null) {
+                Log.d(join(), "received  multipart : " + resp.getTopic());
+                onReceived(resp.getTopic(), resp.getExtra());
             }
         }
 
@@ -203,7 +210,7 @@ public abstract class NettyClient implements IClient, Runnable {
         public void channelActive(ChannelHandlerContext ctx) throws Exception {
 
             //首帧报文
-            write(Multipart.newBuilder()
+            write(Resp.newBuilder()
                     .setName(join())
                     .setType(Type.join.value)
                     .setTopic("client.join")
@@ -215,9 +222,11 @@ public abstract class NettyClient implements IClient, Runnable {
 
         @Override
         public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-            super.channelInactive(ctx);
-            Log.d(join(), "与服务端断开连接：" + ctx.toString());
+
+            Log.e(join(), "链接已断开：" + ctx.toString());
+
             onExit();
+
         }
 
     }
