@@ -1,8 +1,5 @@
 apply plugin: 'com.android.library'
-
-dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-}
+apply plugin: 'com.google.protobuf'
 
 repositories {
     mavenCentral()
@@ -22,7 +19,7 @@ android {
     defaultConfig {
         minSdkVersion 10
         targetSdkVersion 26
-        versionCode  1
+        versionCode 1
         versionName releaseName
     }
 
@@ -34,6 +31,9 @@ android {
             resources {
                 srcDir 'src/../lib'
             }
+            proto {
+                srcDir 'src/main/proto' //指定.proto文件路径
+            }
         }
     }
 
@@ -43,6 +43,36 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+}
+
+protobuf {
+    protoc {
+        // Download from repositories
+        artifact = 'com.google.protobuf:protoc:3.2.0'
+    }
+    plugins {
+        javalite {
+            // The codegen for lite comes as a separate artifact
+            artifact = 'com.google.protobuf:protoc-gen-javalite:3.0.0'
+        }
+    }
+    generateProtoTasks {
+        all().each { task ->
+            task.plugins {
+                javalite {}
+            }
+        }
+    }
+}
+
+
+dependencies {
+    //netty
+    implementation "io.netty:netty-all:4.1.52.Final"
+
+    //protobuf
+    implementation "com.google.protobuf:protobuf-lite:3.0.1"
 }
 
 def releaseTime() {
@@ -56,10 +86,12 @@ task clear(type: Delete) {
 
 task makeJar(type: Jar) {
     from zipTree(zipFile)
-    from fileTree(dir:'src/main'  , includes: ['assets/'])
+    from fileTree(dir: 'src/main', includes: ['assets/'])
     baseName = releaseName
     destinationDir = file(outPath)
 }
 
 makeJar.dependsOn(clear, build)
+
+
 

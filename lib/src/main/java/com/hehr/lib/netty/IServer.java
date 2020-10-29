@@ -1,4 +1,4 @@
-package com.hehr.lib;
+package com.hehr.lib.netty;
 
 /**
  * sock server 定义
@@ -6,10 +6,5 @@ package com.hehr.lib;
  * @author hehr
  */
 public interface IServer extends IBus {
-
-    /**
-     * 断开连接
-     */
-    void close();
 
 }

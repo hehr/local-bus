@@ -1,0 +1,26 @@
+syntax = "proto2";
+package tutorial;
+
+option java_package = "com.hehr.lib.proto";
+
+option java_outer_classname = "RespProto";
+
+message Resp{
+
+    message Extra{
+      optional string character = 1;
+      optional bool  bool = 2;
+      optional bytes binary = 3;
+      optional double digital = 4;
+    }
+
+    required int32 type =1;
+
+    required string topic=2;
+
+    required string name=3;
+
+    optional Extra extra=4;
+
+
+}

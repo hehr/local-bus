@@ -2,19 +2,21 @@ package cn.hehr.client;
 
 import android.util.Log;
 
-import com.hehr.lib.BusClient;
-import com.hehr.lib.multipart.Extra;
+import com.hehr.lib.netty.NettyClient;
+import com.hehr.lib.proto.RespProto;
 
 
-public class Notifier extends BusClient {
+/**
+ * @author hehr
+ */
+public class Notifier extends NettyClient {
 
     private static final String TAG = "NotifyNode";
 
 
     @Override
-    public void onReceived(String topic, Extra extra) {
-
-        Log.d(TAG, "received " + topic + " , data : " + extra.getBinary().length);
+    public void onReceived(String topic, RespProto.Resp.Extra extra) {
+        Log.d(TAG, "received " + topic );
     }
 
     @Override

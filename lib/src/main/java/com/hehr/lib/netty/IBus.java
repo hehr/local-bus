@@ -1,12 +1,10 @@
-package com.hehr.lib;
+package com.hehr.lib.netty;
 
 public interface IBus {
 
-    /**
-     * local socket bind address
-     */
-    String DEFAULT_ADDRESS = "CN.HEHR.LOCAL.BUS";
+    int DEFAULT_PORT = 50001;
 
+    String DEFAULT_IP = "127.0.0.1";
 
     /**
      * bus operate type
@@ -38,7 +36,7 @@ public interface IBus {
 
         ;
 
-        int value;
+        public int value;
 
         Type(int value) {
             this.value = value;
@@ -51,7 +49,7 @@ public interface IBus {
          * @param value int
          * @return {@link Type}
          */
-        static final Type findTypeByInteger(int value) {
+        public static final Type findTypeByInteger(int value) {
             for (Type type : values()) {
                 if (value == type.value) {
                     return type;

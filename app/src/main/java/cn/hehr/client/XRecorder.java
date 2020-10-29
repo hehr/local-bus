@@ -2,20 +2,21 @@ package cn.hehr.client;
 
 import android.util.Log;
 
-import com.hehr.lib.BusClient;
-import com.hehr.lib.multipart.Extra;
+import com.google.protobuf.ByteString;
+import com.hehr.lib.netty.NettyClient;
+import com.hehr.lib.proto.RespProto;
 
 import cn.hehr.recorder.Recorder;
 import cn.hehr.recorder.RecorderListener;
 
-public class XRecorder extends BusClient implements RecorderListener {
+public class XRecorder extends NettyClient implements RecorderListener {
 
     private final String TAG = "RecorderNode";
 
     private Recorder mRecorder = new Recorder();
 
     @Override
-    public void onReceived(String topic, Extra data) {
+    public void onReceived(String topic, RespProto.Resp.Extra data) {
         switch (topic) {
             case "recorder.start":
                 if (mRecorder != null) {
@@ -49,6 +50,7 @@ public class XRecorder extends BusClient implements RecorderListener {
         mRecorder.stop();
         mRecorder.release();
         mRecorder = null;
+        unsubscribe("recorder.start", "recorder.stop");
     }
 
     @Override
@@ -58,9 +60,15 @@ public class XRecorder extends BusClient implements RecorderListener {
 
     @Override
     public void onDataReceived(byte[] buffer, int size) {
-        publish("recorder.pcm", Extra.newBuilder()
-                .setBinary(buffer)
+
+        Log.d(TAG, "send pcm  , buffer size :" + buffer.length);
+
+        publish("recorder.pcm", RespProto.Resp.Extra.newBuilder()
+                .setBinary(ByteString.copyFrom(buffer))
+                .setBool(true)
+                .setCharacter("1112333")
                 .build());
+
     }
 
     @Override
