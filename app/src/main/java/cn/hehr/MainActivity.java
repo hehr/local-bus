@@ -11,7 +11,7 @@ import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
-import com.hehr.lib.netty.NettyServer;
+import com.hehr.lib.BusServer;
 
 import cn.hehr.client.Notifier;
 import cn.hehr.service.NodesService;
@@ -27,17 +27,7 @@ public class MainActivity extends AppCompatActivity {
 
         verifyAudioPermissions(this);
 
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    initBus();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
+        initBus();
 
 
     }
@@ -69,32 +59,18 @@ public class MainActivity extends AppCompatActivity {
     /**
      * 使用 socket bus 方式进行通信
      */
-    private void initBus() throws InterruptedException {
+    private void initBus() {
 
+        new BusServer()
+                .option(new BusServer.Observer() {
+                    @Override
+                    public void done() {
+                        notifier = new Notifier();//start local client
+                        Intent i = new Intent(getApplicationContext(), NodesService.class);
+                        startService(i);//start remote server
+                    }
+                }).bind();
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                //1.bind server
-                new NettyServer().bind();
-            }
-        }).start();
-
-
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-
-        Intent i = new Intent(getApplicationContext(), NodesService.class);
-
-        startService(i);//start remote server
-
-        if (notifier == null) {
-            notifier = new Notifier();//start local client
-        }
     }
 
     /**
@@ -118,10 +94,6 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d(TAG, "clickStop called ...");
 
-        //1. stop by binder
-//        stopByBinder();
-
-        //2.stop by socket bus
         stopBySocketBus();
 
     }

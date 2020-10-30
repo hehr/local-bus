@@ -18,13 +18,6 @@ public interface IClient extends IBus {
      */
     void onReceived(String topic, RespProto.Resp.Extra data);
 
-    /**
-     * join bus
-     *
-     * @return name
-     */
-    String join();
-
 
     /**
      * close connect

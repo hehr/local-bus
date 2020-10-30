@@ -2,36 +2,56 @@ package cn.hehr.client;
 
 import android.util.Log;
 
-import com.hehr.lib.netty.NettyClient;
-import com.hehr.lib.proto.RespProto;
+import com.hehr.lib.BusClient;
+import com.hehr.lib.Extra;
+import com.hehr.lib.IllegalConnectionStateException;
 
 
 /**
  * @author hehr
  */
-public class Notifier extends NettyClient {
+public class Notifier {
 
     private static final String TAG = "NotifyNode";
 
+    private BusClient mClient;
 
-    @Override
-    public void onReceived(String topic, RespProto.Resp.Extra extra) {
-        Log.d(TAG, "received " + topic );
+    public Notifier() {
+        mClient = new BusClient()
+                .option(new BusClient.Observer() {
+                    @Override
+                    public void onConnect() {
+                        try {
+                            mClient.subscribe("recorder.pcm");
+                        } catch (IllegalConnectionStateException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    @Override
+                    public void onExit() {
+                        try {
+                            mClient.unsubscribe("recorder.pcm");
+                        } catch (IllegalConnectionStateException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    @Override
+                    public void onReceived(String topic, Extra extra) {
+                        Log.d(TAG, "received " + topic);
+                    }
+                })
+                .create("notify");
     }
 
-    @Override
-    public String join() {
-        return "notify";
+
+    public void publish(String topic) {
+        try {
+            mClient.publish(topic);
+        } catch (IllegalConnectionStateException e) {
+            e.printStackTrace();
+        }
     }
 
-
-    @Override
-    public void onCrete() {
-        subscribe("recorder.pcm");
-    }
-
-    @Override
-    public void onExit() {
-        unsubscribe("recorder.pcm");
-    }
 }

@@ -6,6 +6,8 @@ import com.hehr.lib.proto.RespProto;
 import java.util.concurrent.ThreadFactory;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
@@ -31,13 +33,14 @@ public class NettyServer implements IServer {
         }
     });//单线程模式
 
-
-    public void bind() {
+    @Override
+    public void bind(int port, final IServer.Observer observer) {
         try {
             new ServerBootstrap()
                     .group(bossGroup)
                     .channel(NioServerSocketChannel.class)
                     .option(ChannelOption.SO_BACKLOG, 1024)
+                    .option(ChannelOption.TCP_NODELAY, true)
                     .option(ChannelOption.SO_KEEPALIVE, true)//长链接
                     .handler(new LoggingHandler(LogLevel.INFO))
                     .childHandler(new ChannelInitializer<SocketChannel>() {
@@ -51,7 +54,15 @@ public class NettyServer implements IServer {
                                     .addLast(EventDispatcher.getInstance());
                         }
                     })
-                    .bind(DEFAULT_PORT).sync()
+                    .bind(port)
+                    .addListener(new ChannelFutureListener() {
+                        @Override
+                        public void operationComplete(ChannelFuture future) throws Exception {
+                            if (future.isDone()) {
+                                observer.bindDone();
+                            }
+                        }
+                    })
                     //开始阻塞
                     .channel().closeFuture().sync();
         } catch (InterruptedException e) {
@@ -62,6 +73,7 @@ public class NettyServer implements IServer {
 
     }
 
+    @Override
     public void close() {
         if (bossGroup != null) {
             bossGroup.shutdownGracefully();
