@@ -1,32 +1,42 @@
 package cn.hehr.client;
 
+
 import android.util.Log;
 
-import com.hehr.lib.netty.NettyClient;
-import com.hehr.lib.proto.RespProto;
+import com.hehr.lib.BusClient;
+import com.hehr.lib.Extra;
+import com.hehr.lib.IllegalConnectionStateException;
 
-
-public class Remoter extends NettyClient {
+public class Remoter {
 
     private final String TAG = "RemoteNode";
 
-    @Override
-    public void onReceived(String topic, RespProto.Resp.Extra extra) {
-        Log.d(TAG, "received " + topic);
+    private BusClient mBusClient;
+
+    public Remoter() {
+        mBusClient = new BusClient()
+                .option(new BusClient.Observer() {
+                    @Override
+                    public void onConnect() {
+                        try {
+                            mBusClient.subscribe("recorder.pcm");
+                        } catch (IllegalConnectionStateException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    @Override
+                    public void onExit() {
+
+                    }
+
+                    @Override
+                    public void onReceived(String topic, Extra extra) {
+                        Log.d(TAG, "received " + topic + " , extra size " + extra.getBinary().length);
+                    }
+                })
+                .create("remote");
     }
 
-    @Override
-    public String join() {
-        return "remote";
-    }
 
-    @Override
-    public void onCrete() {
-        subscribe("recorder.pcm");
-    }
-
-    @Override
-    public void onExit() {
-        unsubscribe("recorder.pcm");
-    }
 }

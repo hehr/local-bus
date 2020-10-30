@@ -2,55 +2,65 @@ package cn.hehr.client;
 
 import android.util.Log;
 
-import com.google.protobuf.ByteString;
-import com.hehr.lib.netty.NettyClient;
-import com.hehr.lib.proto.RespProto;
+import com.hehr.lib.BusClient;
+import com.hehr.lib.Extra;
+import com.hehr.lib.IllegalConnectionStateException;
 
 import cn.hehr.recorder.Recorder;
 import cn.hehr.recorder.RecorderListener;
 
-public class XRecorder extends NettyClient implements RecorderListener {
+public class XRecorder implements RecorderListener {
 
     private final String TAG = "RecorderNode";
 
     private Recorder mRecorder = new Recorder();
 
-    @Override
-    public void onReceived(String topic, RespProto.Resp.Extra data) {
-        switch (topic) {
-            case "recorder.start":
-                if (mRecorder != null) {
-                    mRecorder.start(this);
-                }
-                break;
-            case "recorder.stop":
-                if (mRecorder != null) {
-                    mRecorder.stop();
-                }
-                break;
-            default:
-                break;
-        }
-    }
+    private BusClient mBusClient;
 
-    @Override
-    public String join() {
-        return "recorder";
-    }
+    public XRecorder() {
+        mBusClient = new BusClient()
+                .option(new BusClient.Observer() {
+                    @Override
+                    public void onConnect() {
+                        mRecorder.create(1);
+                        try {
+                            mBusClient.subscribe("recorder.start", "recorder.stop");
+                        } catch (IllegalConnectionStateException e) {
+                            e.printStackTrace();
+                        }
+                    }
 
-    @Override
-    public void onCrete() {
-        Log.e(TAG, "RecorderNode connected");
-        mRecorder.create(1);
-        subscribe("recorder.start", "recorder.stop");
-    }
+                    @Override
+                    public void onExit() {
+                        mRecorder.stop();
+                        mRecorder.release();
+                        mRecorder = null;
+                        try {
+                            mBusClient.unsubscribe("recorder.start", "recorder.stop");
+                        } catch (IllegalConnectionStateException e) {
+                            e.printStackTrace();
+                        }
+                    }
 
-    @Override
-    public void onExit() {
-        mRecorder.stop();
-        mRecorder.release();
-        mRecorder = null;
-        unsubscribe("recorder.start", "recorder.stop");
+                    @Override
+                    public void onReceived(String topic, Extra extra) {
+                        switch (topic) {
+                            case "recorder.start":
+                                if (mRecorder != null) {
+                                    mRecorder.start(XRecorder.this);
+                                }
+                                break;
+                            case "recorder.stop":
+                                if (mRecorder != null) {
+                                    mRecorder.stop();
+                                }
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                })
+                .create("recorder");
     }
 
     @Override
@@ -63,11 +73,15 @@ public class XRecorder extends NettyClient implements RecorderListener {
 
         Log.d(TAG, "send pcm  , buffer size :" + buffer.length);
 
-        publish("recorder.pcm", RespProto.Resp.Extra.newBuilder()
-                .setBinary(ByteString.copyFrom(buffer))
-                .setBool(true)
-                .setCharacter("1112333")
-                .build());
+        try {
+            mBusClient.publish("recorder.pcm", Extra.newBuilder()
+                    .setBinary(buffer)
+                    .setBool(true)
+                    .setCharacter("1112333")
+                    .build());
+        } catch (IllegalConnectionStateException e) {
+            e.printStackTrace();
+        }
 
     }
 
