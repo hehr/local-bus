@@ -6,6 +6,7 @@ interface IClient {
      * subscribe topic
      *
      * @param topics topic
+     * @throws IllegalConnectionStateException {@link IllegalConnectionStateException}
      */
     void subscribe(String... topics) throws IllegalConnectionStateException;
 
@@ -13,6 +14,7 @@ interface IClient {
      * unsubscribe topic
      *
      * @param topics topic
+     * @throws IllegalConnectionStateException {@link IllegalConnectionStateException}
      */
     void unsubscribe(String... topics) throws IllegalConnectionStateException;
 
@@ -22,15 +24,28 @@ interface IClient {
      *
      * @param topic topic
      * @param data  data
+     * @throws IllegalConnectionStateException {@link IllegalConnectionStateException}
      */
     void publish(String topic, Extra data) throws IllegalConnectionStateException;
 
     /**
      * publish topic without extra
      *
-     * @param topic topic
+     * @param topic
+     * @throws IllegalConnectionStateException {@link IllegalConnectionStateException}
      */
     void publish(String topic) throws IllegalConnectionStateException;
 
+    /**
+     * connect to server
+     *
+     * @param name declare your name
+     */
+    void create(String name);
+
+    /**
+     * close connection
+     */
+    void destroy() throws IllegalConnectionStateException;
 
 }

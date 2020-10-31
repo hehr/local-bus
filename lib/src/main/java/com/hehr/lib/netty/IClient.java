@@ -1,6 +1,8 @@
 package com.hehr.lib.netty;
 
 
+import com.hehr.lib.IBus;
+import com.hehr.lib.IllegalConnectionStateException;
 import com.hehr.lib.proto.RespProto;
 
 /**
@@ -22,7 +24,7 @@ public interface IClient extends IBus {
     /**
      * close connect
      */
-    void close();
+    void close() throws IllegalConnectionStateException;
 
 
     /**
@@ -30,14 +32,14 @@ public interface IClient extends IBus {
      *
      * @param topics topic
      */
-    void subscribe(String... topics);
+    void subscribe(String... topics) throws IllegalConnectionStateException;
 
     /**
      * unsubscribe topic
      *
      * @param topics topic
      */
-    void unsubscribe(String... topics);
+    void unsubscribe(String... topics) throws IllegalConnectionStateException;
 
 
     /**
@@ -46,13 +48,13 @@ public interface IClient extends IBus {
      * @param topic topic
      * @param data  data
      */
-    void publish(String topic, RespProto.Resp.Extra data);
+    void publish(String topic, RespProto.Resp.Extra data) throws IllegalConnectionStateException;
 
     /**
      * publish topic without extra
      *
      * @param topic topic
      */
-    void publish(String topic);
+    void publish(String topic) throws IllegalConnectionStateException;
 
 }

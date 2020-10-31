@@ -1,4 +1,4 @@
-package com.hehr.lib.netty;
+package com.hehr.lib;
 
 public interface IBus {
 

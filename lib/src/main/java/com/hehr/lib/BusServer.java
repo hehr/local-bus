@@ -1,7 +1,5 @@
 package com.hehr.lib;
 
-import com.hehr.lib.netty.IBus;
-import com.hehr.lib.netty.IServer;
 import com.hehr.lib.netty.NettyServer;
 
 import java.util.concurrent.ExecutorService;
@@ -13,7 +11,7 @@ import java.util.concurrent.ThreadFactory;
  *
  * @author hehr
  */
-public class BusServer {
+public class BusServer implements IServer, IBus {
 
     private ExecutorService mExecutor = Executors.newSingleThreadExecutor(new ThreadFactory() {
         @Override
@@ -22,36 +20,6 @@ public class BusServer {
         }
     });
 
-    /**
-     * 绑定接口，开始监听
-     *
-     * @return {@link BusServer}
-     */
-    public void bind() {
-
-        mExecutor.submit(new Runnable() {
-            @Override
-            public void run() {
-                server.bind(port, new IServer.Observer() {
-                    @Override
-                    public void bindDone() {
-                        if (observer != null) {
-                            observer.done();
-                        }
-                    }
-                });
-            }
-        });
-    }
-
-    /**
-     * 关闭服务，停止监听
-     *
-     * @return {@link BusServer}
-     */
-    public BusServer close() {
-        return this;
-    }
 
     /**
      * 指定端口号
@@ -75,20 +43,37 @@ public class BusServer {
         return this;
     }
 
-    private int port = IBus.DEFAULT_PORT;
+    private int port = DEFAULT_PORT;
 
     private Observer observer;
 
-    private NettyServer server = new NettyServer();
+    private NettyServer innerNettyServer = new NettyServer();
 
-    /**
-     * 绑定监听
-     */
-    public interface Observer {
-        /**
-         * 绑定操作完成
-         */
-        void done();
+    @Override
+    public void create() {
+
+        mExecutor.submit(new Runnable() {
+            @Override
+            public void run() {
+                innerNettyServer.bind(port, new NettyServer.Observer() {
+                    @Override
+                    public void bindDone() {
+                        if (observer != null) {
+                            observer.done();
+                        }
+                    }
+                });
+            }
+        });
+
+    }
+
+    @Override
+    public void destroy() {
+        if (innerNettyServer != null) {
+            innerNettyServer.close();
+            innerNettyServer = null;
+        }
     }
 
 }

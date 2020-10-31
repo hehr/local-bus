@@ -34,8 +34,9 @@ public class Remoter {
                     public void onReceived(String topic, Extra extra) {
                         Log.d(TAG, "received " + topic + " , extra size " + extra.getBinary().length);
                     }
-                })
-                .create("remote");
+                });
+
+        mBusClient.create("remote");
     }
 
 

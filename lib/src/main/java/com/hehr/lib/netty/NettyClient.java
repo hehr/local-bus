@@ -1,8 +1,11 @@
 package com.hehr.lib.netty;
 
 
+import android.text.TextUtils;
 import android.util.Log;
 
+import com.hehr.lib.IBus;
+import com.hehr.lib.IllegalConnectionStateException;
 import com.hehr.lib.proto.RespProto.Resp;
 
 import java.net.InetSocketAddress;
@@ -50,21 +53,24 @@ public abstract class NettyClient implements IClient, Runnable {
 
 
     @Override
-    public void close() {
+    public void close() throws IllegalConnectionStateException {
+
         write(Resp.newBuilder()
                 .setName(name)
                 .setType(Type.exit.value)
                 .setTopic("client.exit")
                 .build());
+
         if (channel != null) {
             channel.close();
             channel = null;
         }
+
         onExit();
     }
 
     @Override
-    public void subscribe(String... topics) {
+    public void subscribe(String... topics) throws IllegalConnectionStateException {
 
         for (String t : topics) {
             write(Resp.newBuilder()
@@ -77,7 +83,7 @@ public abstract class NettyClient implements IClient, Runnable {
     }
 
     @Override
-    public void unsubscribe(String... topics) {
+    public void unsubscribe(String... topics) throws IllegalConnectionStateException {
         for (String t : topics) {
             write(Resp.newBuilder()
                     .setName(name)
@@ -89,7 +95,7 @@ public abstract class NettyClient implements IClient, Runnable {
 
 
     @Override
-    public void publish(String topic, Resp.Extra data) {
+    public void publish(String topic, Resp.Extra data) throws IllegalConnectionStateException {
         write(Resp.newBuilder()
                 .setName(name)
                 .setType(Type.broadcast.value)
@@ -99,7 +105,7 @@ public abstract class NettyClient implements IClient, Runnable {
     }
 
     @Override
-    public void publish(String topic) {
+    public void publish(String topic) throws IllegalConnectionStateException {
         write(Resp.newBuilder()
                 .setName(name)
                 .setType(Type.broadcast.value)
@@ -112,16 +118,18 @@ public abstract class NettyClient implements IClient, Runnable {
      *
      * @param resp {@link Resp}
      */
-    private void write(Resp resp) {
-        if (isActive())
+    private void write(Resp resp) throws IllegalConnectionStateException {
+        if (isActive()) {
             channel.writeAndFlush(resp);
-        else
-            Log.e(name, "drop resp " + resp.toString());
+        } else {
+            Log.e(name, " drop resp " + resp.toString());
+            throw new IllegalConnectionStateException();
+        }
 
     }
 
     public boolean isActive() {
-        return channel != null && channel.isOpen();
+        return channel != null && channel.isActive();
     }
 
 
@@ -216,8 +224,19 @@ public abstract class NettyClient implements IClient, Runnable {
         @Override
         protected void channelRead0(ChannelHandlerContext ctx, Resp resp) {
             if (resp != null) {
-                Log.d(name, "received  multipart : " + resp.getTopic());
-                onReceived(resp.getTopic(), resp.getExtra());
+                int type = resp.getType();
+                switch (IBus.Type.findTypeByInteger(type)) {
+                    case broadcast:
+                        onReceived(resp.getTopic(), resp.getExtra());
+                        break;
+                    case join:
+                        if (TextUtils.equals("join.failed", resp.getTopic())) {
+                            throw new IllegalArgumentException(" repeat name " + name + " already join bus , change other name.");
+                        }
+                    default:
+                        throw new IllegalArgumentException(" illegal type for client .");
+                }
+
             }
         }
 
@@ -242,16 +261,20 @@ public abstract class NettyClient implements IClient, Runnable {
 
             Log.e(name, "链接已断开：" + ctx.toString());
 
-            onExit();
+            close();
 
         }
 
     }
 
-
+    /**
+     * connect to server callback
+     */
     public abstract void onCrete();
 
-
+    /**
+     * disconnect callback
+     */
     public abstract void onExit();
 
 }
