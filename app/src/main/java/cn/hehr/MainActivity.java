@@ -65,11 +65,17 @@ public class MainActivity extends AppCompatActivity {
                 .option(new BusServer.Observer() {
                     @Override
                     public void done() {
+
                         notifier = new Notifier();//start local client
+
                         Intent i = new Intent(getApplicationContext(), NodesService.class);
                         startService(i);//start remote server
+
+//                        new BusClient().create("notify"); test repeat name join
+
+
                     }
-                }).bind();
+                }).create();
 
     }
 

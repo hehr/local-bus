@@ -44,6 +44,7 @@ public class XRecorder implements RecorderListener {
 
                     @Override
                     public void onReceived(String topic, Extra extra) {
+                        Log.d(TAG, "received " + topic);
                         switch (topic) {
                             case "recorder.start":
                                 if (mRecorder != null) {
@@ -59,8 +60,9 @@ public class XRecorder implements RecorderListener {
                                 break;
                         }
                     }
-                })
-                .create("recorder");
+                });
+
+        mBusClient.create("recorder");
     }
 
     @Override

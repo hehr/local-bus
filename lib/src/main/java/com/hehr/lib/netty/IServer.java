@@ -1,5 +1,7 @@
 package com.hehr.lib.netty;
 
+import com.hehr.lib.IBus;
+
 /**
  * sock server 定义
  *

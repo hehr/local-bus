@@ -1,7 +1,6 @@
 package com.hehr.lib;
 
 import com.google.protobuf.ByteString;
-import com.hehr.lib.netty.IBus;
 import com.hehr.lib.netty.NettyClient;
 import com.hehr.lib.proto.RespProto;
 
@@ -14,7 +13,7 @@ import java.util.concurrent.ThreadFactory;
  *
  * @author hehr
  */
-public class BusClient implements IClient {
+public class BusClient implements IClient, IBus {
 
     private ExecutorService mExecutor = Executors.newSingleThreadExecutor(new ThreadFactory() {
         @Override
@@ -22,24 +21,6 @@ public class BusClient implements IClient {
             return new Thread(runnable, "Bootstrap");
         }
     });
-
-    /**
-     * client name
-     *
-     * @param name String
-     * @return {@link BusClient}
-     */
-    public BusClient create(final String name) {
-
-        mExecutor.submit(new Runnable() {
-            @Override
-            public void run() {
-                client = new InnerClient(name);
-            }
-        });
-
-        return this;
-    }
 
     /**
      * 指定端主机地址
@@ -74,16 +55,16 @@ public class BusClient implements IClient {
         return this;
     }
 
-    private InnerClient client;
+    private InnerHolder holder;
 
     /**
      * 主机地址
      */
-    private String ip = IBus.DEFAULT_IP;
+    private String ip = DEFAULT_IP;
     /**
      * 端口号
      */
-    private int port = IBus.DEFAULT_PORT;
+    private int port = DEFAULT_PORT;
     /**
      * 回调
      */
@@ -92,44 +73,52 @@ public class BusClient implements IClient {
 
     @Override
     public void subscribe(String... topics) throws IllegalConnectionStateException {
-        if (client.isActive()) {
-            client.subscribe(topics);
-        } else {
-            throw new IllegalConnectionStateException();
-        }
+        holder.subscribe(topics);
     }
 
     @Override
     public void unsubscribe(String... topics) throws IllegalConnectionStateException {
-        if (client.isActive()) {
-            client.unsubscribe(topics);
-        } else {
-            throw new IllegalConnectionStateException();
-        }
+        holder.unsubscribe(topics);
     }
 
     @Override
     public void publish(String topic, Extra data) throws IllegalConnectionStateException {
-        if (client.isActive()) {
-            client.publish(topic, transform(data));
-        } else {
-            throw new IllegalConnectionStateException();
-        }
+        holder.publish(topic, transform(data));
     }
 
     @Override
     public void publish(String topic) throws IllegalConnectionStateException {
-        if (client.isActive()) {
-            client.publish(topic);
-        } else {
-            throw new IllegalConnectionStateException();
+        holder.publish(topic);
+
+    }
+
+    @Override
+    public void destroy() throws IllegalConnectionStateException {
+
+        if (holder.isActive()) {
+            holder.close();
+            holder = null;
+        }
+
+        if (observer != null) {
+            observer = null;
         }
     }
 
+    @Override
+    public void create(final String name) {
+        mExecutor.submit(new Runnable() {
+            @Override
+            public void run() {
+                holder = new InnerHolder(name);
+            }
+        });
+    }
 
-    private class InnerClient extends NettyClient {
 
-        public InnerClient(String name) {
+    private class InnerHolder extends NettyClient {
+
+        public InnerHolder(String name) {
             super(ip, port, name);
         }
 

@@ -4,6 +4,7 @@ package com.hehr.lib.netty;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.hehr.lib.IBus;
 import com.hehr.lib.proto.RespProto;
 
 import org.json.JSONException;
@@ -49,16 +50,25 @@ public class EventDispatcher extends SimpleChannelInboundHandler<RespProto.Resp>
      * @throws UnsupportedEncodingException
      * @throws JSONException
      */
-    private void dispatch(ChannelHandlerContext ctx, RespProto.Resp multipart) {
+    private void dispatch(ChannelHandlerContext ctx, RespProto.Resp resp) {
 
-        final String name = multipart.getName();
-        String topic = multipart.getTopic();
-        int type = multipart.getType();
+        final String name = resp.getName();
+        String topic = resp.getTopic();
+        int type = resp.getType();
         switch (IBus.Type.findTypeByInteger(type)) {
             case join:
                 if (innerLst != null) {
                     Log.i(TAG, " >>> " + name + " <<< " + " joined ");
-                    innerLst.put(name, ctx.channel());
+                    if (innerLst.containsKey(name)) {// client name repeat
+                        ctx.channel().writeAndFlush(RespProto.Resp.newBuilder()
+                                .setName(name)
+                                .setTopic("join.failed")
+                                .setType(IBus.Type.join.value)
+                                .build());
+                    } else {
+                        innerLst.put(name, ctx.channel());
+                    }
+
                 }
                 break;
             case subscribe:
@@ -83,13 +93,13 @@ public class EventDispatcher extends SimpleChannelInboundHandler<RespProto.Resp>
                             Log.d(TAG, " >>> bus-" + target + " <<< " + " received topic " + topic + " from " + " >>> " + name + " <<< ");
                             Channel channel = innerLst.get(target);
                             if (channel.isActive() && channel.isWritable()) {
-                                channel.writeAndFlush(multipart);//转发原始报文
+                                channel.writeAndFlush(resp);//转发原始报文
                             } else {
                                 Log.e(TAG, name + " channel is close , drop topic " + topic);
                             }
 
                         } else {
-                            Log.e(TAG, " discard " + name + " , " + multipart);
+                            Log.e(TAG, " discard " + name + " , " + resp);
                         }
                     }
                 } else {
@@ -110,7 +120,7 @@ public class EventDispatcher extends SimpleChannelInboundHandler<RespProto.Resp>
                 }
                 break;
             case exit:
-                if (innerLst.containsKey(name) && multipart.getType() == IBus.Type.exit.value) {
+                if (innerLst.containsKey(name) && resp.getType() == IBus.Type.exit.value) {
                     Log.w(TAG, " >>> " + name + " <<< " + " exit ...");
                     for (Iterator<String> iteratorKey = subscribeLst.keySet().iterator(); iteratorKey.hasNext(); ) {
                         String top = iteratorKey.next();
@@ -132,7 +142,7 @@ public class EventDispatcher extends SimpleChannelInboundHandler<RespProto.Resp>
                 }
                 break;
             default:
-                Log.e(TAG, "not support operate type code : " + multipart.getType());
+                Log.e(TAG, "not support operate type code : " + resp.getType());
                 throw new IllegalStateException("unknown bus server type");
         }
     }

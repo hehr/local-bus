@@ -17,6 +17,7 @@ public class Notifier {
     private BusClient mClient;
 
     public Notifier() {
+
         mClient = new BusClient()
                 .option(new BusClient.Observer() {
                     @Override
@@ -41,12 +42,15 @@ public class Notifier {
                     public void onReceived(String topic, Extra extra) {
                         Log.d(TAG, "received " + topic);
                     }
-                })
-                .create("notify");
+                });
+
+        mClient.create("notify");
+
     }
 
 
     public void publish(String topic) {
+        Log.d(TAG, "publish topic " + topic);
         try {
             mClient.publish(topic);
         } catch (IllegalConnectionStateException e) {
