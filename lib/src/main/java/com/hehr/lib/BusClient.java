@@ -7,7 +7,6 @@ import com.hehr.lib.proto.RespProto;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
-
 /**
  * client
  *

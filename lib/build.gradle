@@ -14,7 +14,7 @@ def zipFile = file('build/intermediates/shrunk_classes/release/shrunkClasses.jar
 android {
 
     compileSdkVersion 26
-    buildToolsVersion "19.0.1"
+    buildToolsVersion "29.0.2"
 
     defaultConfig {
         minSdkVersion 10
@@ -68,11 +68,12 @@ protobuf {
 
 
 dependencies {
-    //netty
-    implementation "io.netty:netty-all:4.1.52.Final"
 
     //protobuf
     implementation "com.google.protobuf:protobuf-lite:3.0.1"
+    //netty
+    implementation "io.netty:netty-all:4.1.52.Final"
+
 }
 
 def releaseTime() {

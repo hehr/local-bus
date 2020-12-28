@@ -35,7 +35,7 @@ public class BusServer implements IServer, IBus {
     /**
      * 注册回掉
      *
-     * @param observer {@link BusClient.Observer}
+     * @param observer {@link IServer.Observer}
      * @return {@link BusClient}
      */
     public BusServer option(Observer observer) {
