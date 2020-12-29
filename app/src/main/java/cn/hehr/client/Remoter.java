@@ -3,7 +3,7 @@ package cn.hehr.client;
 
 import android.util.Log;
 
-import com.hehr.lib.BusClient;
+import com.hehr.lib.client.BusClient;
 import com.hehr.lib.Extra;
 import com.hehr.lib.IllegalConnectionStateException;
 

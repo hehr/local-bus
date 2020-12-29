@@ -22,7 +22,11 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleStateEvent;
 
-
+/**
+ * 单例模式
+ *
+ * @author hehr
+ */
 @ChannelHandler.Sharable
 public class EventDispatcher extends SimpleChannelInboundHandler<RespProto.Resp> {
 

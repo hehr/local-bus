@@ -1,6 +1,5 @@
 package com.hehr.lib.netty;
 
-
 import com.hehr.lib.proto.RespProto;
 
 import java.util.concurrent.ThreadFactory;

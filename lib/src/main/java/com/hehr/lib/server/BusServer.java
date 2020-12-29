@@ -1,5 +1,7 @@
-package com.hehr.lib;
+package com.hehr.lib.server;
 
+import com.hehr.lib.IBus;
+import com.hehr.lib.client.BusClient;
 import com.hehr.lib.netty.NettyServer;
 
 import java.util.concurrent.ExecutorService;

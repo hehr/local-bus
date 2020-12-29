@@ -1,4 +1,7 @@
-package com.hehr.lib;
+package com.hehr.lib.client;
+
+import com.hehr.lib.Extra;
+import com.hehr.lib.IllegalConnectionStateException;
 
 interface IClient {
 

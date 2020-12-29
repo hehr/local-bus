@@ -1,4 +1,4 @@
-package com.hehr.lib;
+package com.hehr.lib.server;
 
 interface IServer {
     /**

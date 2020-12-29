@@ -11,7 +11,7 @@ import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
-import com.hehr.lib.BusServer;
+import com.hehr.lib.server.BusServer;
 
 import cn.hehr.client.Notifier;
 import cn.hehr.service.NodesService;
@@ -66,16 +66,27 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void done() {
 
-                        notifier = new Notifier();//start local client
-
                         Intent i = new Intent(getApplicationContext(), NodesService.class);
                         startService(i);//start remote server
 
-//                        new BusClient().create("notify"); test repeat name join
-
-
                     }
                 }).create();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                //sleep 500ms wait for server ready
+                notifier = new Notifier();//start local client
+
+            }
+        }).start();
+
+
 
     }
 
