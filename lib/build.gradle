@@ -5,16 +5,16 @@ repositories {
     mavenCentral()
 }
 
+
 def code = '1.0.3'
 def moduleName = 'local-bus'
 def releaseName = moduleName + "_" + code + "_" + releaseTime()
 def outPath = 'output/'
-def zipFile = file('build/intermediates/shrunk_classes/release/shrunkClasses.jar')
 
 android {
 
     compileSdkVersion 26
-    buildToolsVersion "19.0.1"
+    buildToolsVersion "29.0.2"
 
     defaultConfig {
         minSdkVersion 10
@@ -39,7 +39,8 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled true
+//            zipAlignEnabled true//优化 zip 包
+            minifyEnabled false//混淆
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
@@ -68,30 +69,29 @@ protobuf {
 
 
 dependencies {
-    //netty
-    implementation "io.netty:netty-all:4.1.52.Final"
 
     //protobuf
     implementation "com.google.protobuf:protobuf-lite:3.0.1"
+    //netty
+    implementation "io.netty:netty-all:4.1.52.Final"
+
 }
+
 
 def releaseTime() {
     return new Date().format("yyyyMMdd", TimeZone.getTimeZone("GMT+08:00"))
 }
 
+task releaseLibWithAAR(type: Copy) {
+    from 'build/outputs/aar/lib-release.aar'
+    rename('lib-release.aar' , releaseName + ".aar" )
+    into outPath + releaseName
+}
 
 task clear(type: Delete) {
     delete outPath
 }
 
-task makeJar(type: Jar) {
-    from zipTree(zipFile)
-    from fileTree(dir: 'src/main', includes: ['assets/'])
-    baseName = releaseName
-    destinationDir = file(outPath)
-}
-
-makeJar.dependsOn(clear, build)
-
+releaseLibWithAAR.dependsOn(clear, assemble)
 
 

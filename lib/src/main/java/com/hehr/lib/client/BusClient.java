@@ -1,6 +1,9 @@
-package com.hehr.lib;
+package com.hehr.lib.client;
 
 import com.google.protobuf.ByteString;
+import com.hehr.lib.Extra;
+import com.hehr.lib.IBus;
+import com.hehr.lib.IllegalConnectionStateException;
 import com.hehr.lib.netty.NettyClient;
 import com.hehr.lib.proto.RespProto;
 
@@ -191,10 +194,10 @@ public class BusClient implements IClient, IBus {
      */
     private RespProto.Resp.Extra transform(Extra extra) {
         return RespProto.Resp.Extra.newBuilder()
-                .setBinary(ByteString.copyFrom(extra.binary))
-                .setBool(extra.bool)
-                .setCharacter(extra.character)
-                .setDigital(extra.digital)
+                .setBinary(ByteString.copyFrom(extra.getBinary()))
+                .setBool(extra.isBool())
+                .setCharacter(extra.getCharacter())
+                .setDigital(extra.getDigital())
                 .build();
     }
 

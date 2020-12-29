@@ -34,8 +34,3 @@
 -renamesourcefileattribute SourceFile
 -keepattributes Exceptions,InnerClasses,Signature,Deprecated,SourceFile,LineNumberTable,*Annotation*,EnclosingMethod
 
-
--keep public class com.hehr.lib.*{public *;}
-
-
--keep public class com.hehr.lib.protocol.multipart.*{public *;}

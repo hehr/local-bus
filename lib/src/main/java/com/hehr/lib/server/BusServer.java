@@ -1,5 +1,7 @@
-package com.hehr.lib;
+package com.hehr.lib.server;
 
+import com.hehr.lib.IBus;
+import com.hehr.lib.client.BusClient;
 import com.hehr.lib.netty.NettyServer;
 
 import java.util.concurrent.ExecutorService;
@@ -35,7 +37,7 @@ public class BusServer implements IServer, IBus {
     /**
      * 注册回掉
      *
-     * @param observer {@link BusClient.Observer}
+     * @param observer {@link IServer.Observer}
      * @return {@link BusClient}
      */
     public BusServer option(Observer observer) {
