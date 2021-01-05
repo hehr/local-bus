@@ -1,6 +1,6 @@
 package com.hehr.lib.server;
 
-interface IServer {
+public interface IServer {
     /**
      * 绑定接口，开始监听
      */
@@ -14,7 +14,7 @@ interface IServer {
     /**
      * 绑定监听
      */
-    public interface Observer {
+    interface Observer {
         /**
          * 绑定操作完成
          */
